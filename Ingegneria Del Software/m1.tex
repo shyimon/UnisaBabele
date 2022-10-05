@@ -1,0 +1,160 @@
+\chapter{Requirements Analysis Document}
+
+    Questo documento serve a dare allo sviluppatore e all'utente una visione univoca del sistema da sviluppare, astraendolo e prevedendone le funzionalità.
+    
+    Si può cercare di diminuirne la complessità complessiva tramite \textbf{astrazione}, \textbf{decomposizione} (divide et impera) o \textbf{gerarchia} (layering).
+
+\section{Requirements Elicitation}
+    
+    Fare l'analisi dei requisiti significa identificare lo scopo del sistema, identificare cosa è nel sistema e cosa non lo è (cosa che si può vedere analoga all'identificare cosa è una classe e cosa è un attore).
+    
+    Questo documento è inoltre poco formale, vicino al linguaggio naturale al fine di essere compreso dal cliente. Esso comprende scenari e casi d'uso. I primi sono veri e propri esempi concreti dell'utilizzo del sistema, mentre i casi d'uso utilizzano un linguaggio un po' più generico, seppur naturale. In generale, negli scenari vediamo delle istanze ("Piero esegue il login...", "la serie Lost viene aggiunta alla wishlist...", "si procede all'acquisto del gioco del Monopoly..."), mentre nei casi d'uso delle classi ("l'utente esegue il login...", "l'elemento viene aggiunto alla wishlist...", "si procede all'acquisto dell'articolo...").
+    
+    Usiamo questi strumenti per descrivere in modo non ambiguo e chiaro al cliente la natura del sistema che andremo a realizzare. È importante che siano chiari e corretti perché verranno utilizzati come base per lo sviluppo di molte altre parti della documentazione.
+    
+    \paragraph{I diversi tipi di Requirement Elicitation}
+    \begin{itemize}
+        \item \textbf{Greenfield Engineering:} Non esiste un sistema attuale, si inizia la progettazione da zero.
+        \item \textbf{Re-engineering:} Re-design o re-implementazione di un sistema esistente, per esempio causata dalla nascita di nuove tecnologie o nuove richieste di mercato.
+        \item \textbf{Interface engineering:} Fornire i servizi di un ambiente esistente in un nuovo ambiente. Causato dall'evoluzione di tecnologie o richieste di mercato esistenti.
+    \end{itemize}
+    
+\section{Problem Statement}
+    Parte del documento solitamente prodotta dal cliente, contenente una descrizione del problema che il sistema deve affrontare e come affrontarlo. Un buon Problem Statemente dovrebbe contenere:
+    
+    \begin{itemize}
+        \item \textbf{Situazione corrente:} Problema che deve essere risolto.
+        \item \textbf{Scenari:} Descrizione di alcuni scenari in maniera discorsiva, preferibilmente scenari che rappresentano bene le funzionalità principali del sistema.
+        \item \textbf{Requisiti:} Funzionali, non funzionali e pseudo-requisiti (vincoli).
+        \item \textbf{Schedule:} Principali milestones e deadlines.
+        \item \textbf{Ambiente target:} Descrizione dell'ambiente e dell'architettura in cui il sistema andrà ad operare.
+        \item \textbf{Criteri di accettazione da parte del cliente.}
+    \end{itemize}
+    
+    \paragraph{Dettagli situazione corrente.} Una volta definito il problema, va definito se la soluzione andrà collocata nell'\textbf{application domain} (sviluppo di nuove tecnologie) o nel \textbf{solution domain} (cambiamento del sistema stesso). A volte una buona idea non può essere sviluppata per mancanza di tecnologie adatte, come per esempio internet che fu ipotizzato molto prima dello sviluppo della tecnologia necessaria per implementarlo. Altre richiedono lo sfruttamento più consapevole di tecnologie già esistenti.
+    
+    \paragraph{Tipi di requisiti.} I \textbf{requisiti funzionali} descrivono l'interazione fra l'attore e il sistema indipendentemente dall'implementazione, mentre quelli \textbf{non funzionali} descrivono aspetti percettibili dall'utente finale ma non direttamente legati alla parte funzionale, come per esempio il tempo di risposta.
+    
+    I \textbf{vincoli}, o \textbf{pseudo-requisiti} invece sono imposti dal cliente o dall'ambiente in cui il sistema viene collocato. Quindi per esempio il linguaggio di implementazione.
+    
+\section{Requirements Validation}
+
+    In questa sezione del documento definiamo alcuni criteri di correttezza dei requisiti:
+    
+    \begin{itemize}
+        \item \textbf{Correttezza:} Rappresenta la visione del cliente.
+        \item \textbf{Completezza:} Descrive tutti i possibili scenari, compresi quelli eccezionali.
+        \item \textbf{Consistenza:} Assenza di contraddizioni fra i vari requisiti.
+        \item \textbf{Realismo:} I requisiti \underline{possono} essere realizzati.
+        \item \textbf{Tracciabilità:} Ogni funzione del sistema può essere ricondotta a un requisito.
+    \end{itemize}
+    
+\section{Requirements Evolution}
+    Una caratteristica dei requisiti è che essi cambiano molto e spesso. È utile dunque avere dei tools che aiutino a tenere traccia di suddetti cambiamenti.
+    
+\section{Scenari}
+
+    Abbiamo diversi tipi di scenari, fra cui:
+    \begin{itemize}
+        \item \textbf{As-is:} Usato per descrivere una situazione corrente, spesso utilizzato in progetti di re-engineering o in cui esiste un sistema funzionante su cui basarsi.
+        \item \textbf{Visionary scenario:} Usati per descrivere un sistema futuro non attualmente esistente.
+        \item \textbf{Evaluation scenario:} Test dell'utente secondo i quali il sistema dovrà essere valutato. Possono anche essere chiamati test scenarios.
+        \item \textbf{Teaining scenarios:} Istruzioni step-by-step usati per allenare al sistema un utente novizio.
+    \end{itemize}
+    
+    Gli scenari possono essere difficili da trovare. Talvolta l'utente stesso potrebbe non riuscire a verbalizzare i requisiti necessari che desidera vedere nel sistema ultimato. Inoltre scenari potrebbero essere aggiunti in futuro o essere soggetti a cambiamenti. In generale l'approccio all'acquisizione di scenari dal cliente deve essere di tipo esplorativo e dialettico.
+    
+\section{Casi d'uso}
+    Un caso d'uso è un flusso di eventi nel sistema che include l'interazione con un attore. Lo use case model descrive correttamente tutte le funzionalità del sistema.
+    
+    I casi d'uso sono più generali degli scenari ma mantengono comunque un linguaggio discorsivo, almeno nel flusso di eventi.
+    
+    \subsection{Relazioni fra gli use case}
+        Le relazioni fra gli use case possono essere \textbf{dipendenze}, a loro volta divise in \textbf{include} ed \textbf{extend}, oppure \textbf{generalizzazioni}.
+        
+        \begin{itemize}
+            \item \textbf{Dipendenze:}
+            \begin{itemize}
+                \item \textbf{Include:} Si usa per un complesso flusso di eventi che si vuole decomporre in flussi più semplici, i quali verranno eseguiti nella loro interezza in quello "padre". Può anche essere usato per riutilizzare parti abbastanza generiche di un flusso di eventi, permettendo a più use case di includerne uno stesso.
+                \item \textbf{Extend:} Questa relazione estende un flusso di eventi che già è completo, aggiungendo ulteriori funzionalità.
+        \end{itemize}
+            \item \textbf{Generalizzazione:} Astrazione di un comportamento comune fra due casi d'uso. Il caso d'uso generale non ha di per sé un flusso di eventi, viene sempre istanziato come una delle specializzazioni.
+        \end{itemize}
+        
+\section{Requisiti}
+    \subsection{Categorie di requisiti non funzionali}
+    I requisiti non funzionali possono essere organizzati secondo il seguente modello:
+    \begin{itemize}
+        \item \textbf{Usabilità:} È la facilita con cui un utente novizio impara a preparare gli input e a interpretare gli output del sistema o componente.
+        \item \textbf{Affidabilità:} Capacità di un sistema di eseguire le sue funzioni sotto certe condizioni e per un certo periodo di tempo. Questo può comprendere questioni di sicurezza per esempio (E2EE, etc). Recentemente rimpiazzato da \textbf{dependability}, che include anche \textbf{robustezza} (capacità di un sistema di un sistema di resistere a input non corretti) e \textbf{sicurezza} 
+        \item \textbf{Performance:} Misure quantificabili di efficienza del sistema, come throughput, tempo di risposta, etc.
+        \item \textbf{Supportabilità:} Flessibilità al cambiamento e all'evoluzione del sistema.
+    \end{itemize}
+    
+    
+    \subsection{Categorie di pseudo-requisiti}
+    \begin{itemize}
+        \item \textbf{Requisiti di implementazione:} Uso di certi linguaggi o tecnologie.
+        \item \textbf{Requisiti di interfaccia:} Riguardano sistemi esterni (per esempio legacy) e l'interazione con questi.
+        \item \textbf{Requisiti sulle operazioni:} Vincoli sull'amministrazione del sistema e la sua gestione (come fare backup, etc).
+        \item \textbf{Packaging requirements:} Requisiti riguardanti l'installazione del sistema da parte dell'utente (installazione, training, etc).
+        \item \textbf{Requisiti legali:} Licenze, certificazioni, etc.
+    \end{itemize}
+    
+\section{Object Modeling}
+    Analizzando il flusso di eventi possiamo identificare gli oggetti e le loro operazioni principali. Individuare correttamente le operazioni e gli oggetti ai quali queste appartengono è una fase importante della progettazione.
+    
+    Una fase fondamentale dell'object modeling è andare a trovare gli oggetti stessi nel flusso di eventi dei vari casi d'uso. Per fare ciò possiamo avvalerci di strumenti come per esempio l'analisi testuale di Abbott.
+    
+    Inoltre possiamo identificare gli oggetti per classi, come per esempio.
+    
+    \begin{itemize}
+        \item \textbf{Entity Object:} Rappresentano perlopiù informazioni nel database, ma possono all'occorrenza rappresentare anche informazioni non persistenti ma di cui il programma deve tenere traccia.
+        \item \textbf{Boundary Object:} Rappresenta l'interazione fra l'utente e il sistema.
+        \item \textbf{Control Object:} Rappresentano i task di controllo eseguiti dal sistema. In pratica instradano correttamente gli input dell'utente.
+    \end{itemize}
+    
+    A seconda della necessità possono essere aggiunte anche ulteriori classi di oggetti, come per esempio i Manager Object.
+    
+\section{Dynamic Modeling}
+    L'analisi dinamica è utilizzata per descrivere il comportamento dinamico del sistema o degli oggetti, ma anche per esempio dell'interfaccia utente. Tramite questo tipo di analisi possiamo identificare classi ma soprattutto operazioni e stati delle stesse.
+    
+    Sono due i tipi di diagrammi che possiamo usare in questo tipo di analisi.
+    
+    \begin{itemize}
+        \item \textbf{Interaction diagram:} A loro volta suddivisi in \textbf{Sequence Diagrams}, utili per descrivere le interazioni fra gli oggetti di un sistema in base a una sequenza temporale, e \textbf{Collaboration Diagrams}, che mostrano le relazioni fra gli oggetti in maniera più evidente, ignorando però l'aspetto temporale.
+        \item \textbf{Statechart Diagrams:} Sono macchine a stati finiti che descrivono gli stati di un determinato oggetto, specificando i possibili stati in cui può trovarsi e le transizioni tramite le quali può spostarsi fra gli stessi.
+    \end{itemize}
+    
+    \paragraph{Modello Dinamico}, per definizione è una collezione di statechart diagrams, uno per ogni classe che ha un comportamento dinamico rilevante. È utile per individuare e fornire metodi per l'object model.
+    
+    \paragraph{Evento}, uno \textbf{scambio di messaggi}, qualcosa che succede in un dato momento. Serve a inviare informazioni da un oggetto all'altro e possono essere raggruppati in gerarchie.
+    
+    \subsection{Sequence Diagrams}
+        Un oggetto partecipante a un Squence Diagram è istanziato, quindi i Sequence Diagrams vanno a istanziare i più generici dasi d'uso. Essi possono inoltre essere suddivisi in:
+        
+        \begin{itemize}
+            \item \textbf{Fork Diagram:} Il comportamento dinamico è molto centralizzato, solitamente in un oggetto che conosce tutti gli altri e scambia informazioni con essi.
+            \item \textbf{Stair Diagram:} Il comportamento dinamico è più modulare e distribuito. Un qualsiasi oggetto può delegare informazioni e operazioni ad altri.
+        \end{itemize}
+        
+        Nonostante il modello a scala sia generalmente preferibile per un'architettura a oggetti, uno non è assolutamente e sempre superiore all'altro.
+        
+    \subsection{Statechart Diagrams}
+        Questo diagramma modella il comportamento del singolo oggetto, delineando gli stati in cui può trovarsi e le operazioni tramite cui li raggiunge, e rappresentando il tutto come una macchina a stati finiti.
+        
+        Quando l'oggetto si trova in uno stato, un evento può far scattare una \textbf{transizione} e fargli raggiungere lo stato risultante. In assenza di un evento, la transizione scatta quando l'attività che l'oggetto stava eseguendo nello stato precedente viene portata a conclusione.
+        
+        \paragraph{Tipi di operazioni} I due tipi di operazioni che possono avvenire sono \textbf{activity} ed \textbf{action}. Una activity richiede tempo per essere completata, mentre una action è istantanea.
+        
+        \paragraph{Statechart diagrams innestati} Uno statechart diagram può contenere un sub-satechart diagram, i cui stati sono invisibili al super-statechart diagram. Così facendo descriviamo il comportamento di azioni non atomiche, ma in un diagramma separato. Questo ci permette di non perdere dettaglio ma al contempo di non aggiungere complessità superflua, in quanto nel diagramma di livello superiore rappresentiamo quelli di livelli inferiori come azioni atomiche.
+        
+    \subsection{Concurrency}
+        Un'altra cosa che possiamo modellare è la concorrenza, di cui abbiamo due tipi.
+        \begin{itemize}
+            \item \textbf{Concorrenza di sistema:} Abbiamo vari statechart diagrams e ognuno viene eseguito in maniera concorrente.
+            \item \textbf{Concorrenza interna agli oggetti:} Un oggetto può essere partizionato in sottoinsiemi di stati e partizioni indipendenti fra loro, e questi vengono eseguiti contemporaneamente. Ciò vuol dire che l'oggetto si trova in più stati nello stesso istante, uno per ogni sottoinsieme.
+        \end{itemize}
+        
+    \subsection{Modellazione dinamica dell'interfaccia utente: Navigation Path}
+        Sono statecart diagrams, in cui gli stati sono le varie pagine o schermate dell'applicazione in cui l'utente può trovarsi, e il contenuto può essere un \textbf{mock-up} o una descrizione del contenuto di quella pagina. Le transizioni possono essere interazioni dell'utente con l'applicazione che causano il reindirizzamento a una nuova pagina o simili. (per esempio l'interruzione della connessione in un'applicazione web causerà la transizione a una pagina di errore)

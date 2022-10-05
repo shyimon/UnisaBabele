@@ -1,0 +1,39 @@
+Il controllo della congestione e la qualità del servizio sono due aspetti profondamente collegati all'interno di una rete. Il controllo della congestione è collegato non a uno ma a tre strati: quello di collegamento, quello di rete e quello di trasporto.
+
+\section{Traffico dati}
+    La congestione è fortemente dipendente dal traffico dati. Un traffico dati troppo grande causa congestione. È quindi opportuno parlare prima di traffico dati.
+    
+    \subsection{Descrizione del traffico}
+        Un parametro importante, oltre al rapporto fra velocità di spedizione e tempo, sono le \textit{raffiche}. I parametri che prendiamo in considerazione sono quindi la velocità massima, quella media e la dimensione massima delle raffiche.
+        
+        Le raffiche di dati riescono a essere ben gestite se sono brevi. Raffiche di lunghezza maggiore potrebbero creare congestione.
+        
+        \subsubsection{Larghezza di banda effettiva}
+            La larghezza di banda che la rete deve offrire per trasportare il traffico dati. Il suo calcolo è molto complesso.
+            
+    \subsection{Profili del traffico}
+        Un profilo del traffico fornisce una descrizione della modalità di spedizione dei dati. Per la nostra discussione consideriamo tre profili:
+        \begin{itemize}
+            \item \textbf{Velocità costante:} la velocità non cambia, e quella media coincide con quella massima. Molto facile da gestire in quanto si conoscono a priori le risorse necessarie.
+            
+            \item \textbf{Velocità variabile:} presenta brevi raffiche dati. Più difficile da gestire del precedente, ma la brevità delle raffiche le rende non difficili da gestire.
+            
+            \item \textbf{A raffiche:} presenta improvvisi e bruschi cambiamenti della velocità. La velocità massima è molto più alta di quella media. Per la sua impredicibilità è difficile da gestire ed è la causa principale di congestione.
+        \end{itemize}
+        
+\section{Congestione}
+    In una rete a commutazione di pacchetto la congestione avviene chiaramente quando la quantità di dati spediti è più grande della quantità di dati gestibili.
+    
+    Possiamo avere anche dei \textbf{bottleneck}: un router deve memorizzare i pacchetti in delle code prima di spedirli. Se questa operazione è lenta il router potrebbe rallentare la parte della rete che passa da esso.
+    
+    \subsection{Prestazioni della rete}
+        Per valutare gli effetti della congestione si possono valutare le prestazioni della rete, per le quali si usano spesso due misure: il ritardo e il throughput.
+        
+        \subsubsection{Ritardo}
+            Il ritardo in una situazione in cui il carico è più basso della capacità di rete consta nel lavoro di trasmissione dei pacchetti da un'interfaccia all'altra. Il ritardo aumenta man mano che il carico cresce, in quanto i pacchetti dovranno aspettare nelle code. Se il carico diventa addirittura maggiore della capacità di rete, i pacchetti potrebbero non riuscire ad arrivare a destinazione.
+            
+        \subsubsection{Throughput}
+            Esso è stato definito come la quantità di dati che si riesce effettivamente a inviare. Questa quantità cresce man mano che si aumenta il traffico, in quanto tutti i pacchetti inviati vengono consegnati. Quando il traffico si avvicina alla capacità di rete tuttavia alcuni pacchetti vengono eliminati o persi, facendo descrescere questa quantità.
+            
+\section{Controllo della congestione}
+    

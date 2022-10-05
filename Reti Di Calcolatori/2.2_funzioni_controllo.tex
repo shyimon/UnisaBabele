@@ -1,0 +1,183 @@
+Le funzioni principali dello strato di collegamento sono le funzioni di accesso allo strato stesso e le funzioni di accesso al mezzo trasmissivo. In questo capitolo discuteremo le prime, che gestiscono la comunicazione fra due nodi adiacenti.
+
+Queste includono il framing, il controllo degli errori, il controllo di flusso e i protocolli che permettono di trasmettere in modo affidabile i frame fra i nodi della rete.
+
+\section{Framing}
+    Uno dei compiti dello strato di collegamento sta nel separare pacchetti di dati fra loro, organizzandoli in \textbf{frame}. Possiamo fare un'analogia con il sistema postale, in cui una busta delimita fisicamente una lettera dall'altra e inoltre specifica mittente e destinatario.
+    
+    Un messaggio è tipicamente diviso in frame, che contengono l'indirizzo del destinatario per permetterne il corretto instradamento, e l'indirizzo del mittente, per permettere di inviare una risposta una volta ricevuto il messaggio. Un altro motivo di questa suddivisione è il rendere la dimensione dei singoli frame limitata, in quanto aumenta le prestazioni e rende più semplice la gestione degli errori. Infatti un singolo errore in un frame molto grande potrebbe causarne la ritrasmissione, operazione molto dispendiosa.
+    
+    \subsection{Frame di dimensione fissa}
+        Con frame così definiti, non abbiamo bisogno di una vera limitazione, in quanto la dimensione stessa dei frame fa il ruolo di questa informazione. Il prezzo è chiaramente avere una struttura piuttosto rigida.
+        
+    \subsection{Frame di dimensione variabile}
+        Questo tipo di frame viene utilizzato nelle reti LAN. Abbiamo bisogno di segnalare in qualche modo la fine di un frame e l'inizio del successivo. Sono tipicamente utilizzati due approcci: quello ai caratteri e quello ai bit.
+        
+        \subsubsection{Protocolli orientati ai caratteri}
+            In questo tipo di protocollo i dati sono rappresentati da caratteri in una certa codifica, come per esempio quella ASCII. Anche l'intestazione e la coda vengono rappresentati in questo formato.
+            
+            Questo tipo di framing era popolare quando la maggior parte dei dati trasmessi erano di tipo testuale, ma potrebbe essere meno conveniente con tipi di dati multimediali.
+            
+            Un problema che sorge è la presenza del carattere delimitatore nei dati stessi. Ciò può essere risolto con la tecnica del \textbf{byte stuffing}, ossia inserire una carattere ESC prima sia del delimitatore che dell'ESC destinato ai dati. Così facendo l'ESC destinato ai dati è identificato con ESC-ESC, mentre il delimitatore con ESC-Delim.
+            
+            Un ulteriore problema è che sono sorti nuovi standard testuali come UNICODE, che codificano i caratteri con 16 o 32 bit, cosa che potrebbe essere incompatibile con la codifica ASCII a 8 bit. La tendenza generale è sviluppare protocolli orientati ai bit.
+        
+        \subsubsection{Protocolli orientati ai bit}
+            In questo tipo di protocolli il frame contiene bit che non hanno una struttura precisa, bensì gli strati superiori si occuperanno di interpretarli come immagini, testo, etc. Anche in questo caso abbiamo però bisogno di un separatore. La maggior parte dei protocolli utilizza un delimitatore di 8 bit, in particolare 01111110. Questo può creare lo stesso problema visto in precedenza, quando questa sequenza di bit viene usata nei dati.
+            
+            La risoluzione sta nella tecnica di \textbf{bit stuffing}, che prevede di inserire uno 0 qualora ci siano uno 0 e cinque 1 consecutivi. Questo bit aggiuntivo verrà rimosso dal destinatario, ed evita che la sequenza di bit usata per il delimitatore si trovi nei dati.
+            
+\section{Controllo del flusso e degli errori}
+    Queste sono le due funzionalità più importanti dello strato di collegamento.
+    
+    \subsection{Controllo del flusso}
+        Nella maggior parte dei protocolli, il controllo del flusso è composto da un insieme di procedure che dicono al mittente quanti dati è possibile inviare prima di ricevere un riscontro da parte del destinatario. Ciò è utile in quanto il destinatario deve poter avere il tempo di memorizzare ed elaborare i dati ricevuti, anziché riceverne una mole troppo grande. Il destinatario deve quindi poter dire al mittente che il buffer di ricezione sta per esaurirsi, e che quindi dovrà attendere prima di inviare altri dati.
+        
+    \subsection{Controllo degli errori}
+        Controllo degli errori significa rilevazione e correzione degli errori. Nello strato di collegamento ciò vuol dire ritrasmettere i frame danneggiati. Mentre si applicano le tecniche descritte in precedenza, per la ritrasmissione abbiamo meccanismi chiamati ARQ (Automatic Repeat Request).
+        
+\section{Protocolli}
+    Il framing, il controllo del flusso e degli errori si uniscono in quelli che sono i protocolli. Sono solitamente implementati in software in un qualsiasi linguaggio di programmazione, e si dividono in protocolli che gestiscono canali non soggetti a errori e viceversa, canali soggetti a errori. Nonostante i protocolli della prima categoria non possano essere usati in pratica in quanto non esistono canali non soggetti a errori, fungono da buona base teorica per descrivere i secondi.
+    
+    Una differenza fra i protocolli che andremo a descrivere e quelli usati nella realtà è che i primi sono unidirezionali: nonstante alcuni frame speciali (ACK per \textit{acknowledgement} e NAK per \textit{negative acknowledgement}) viaggino dal destinatario al mittente, i dati non lo fanno mai. Nei protocolli usati realmente i frame di ACK e NAK viaggiano insieme ai dati (una tecnica chiamata \textit{piggyback}); in generale possiamo immaginare un protocollo bidirezionale come due copie della versione unidirezionale, posizionate specularmente.
+    
+\section{Canali senza rumore}
+    Prendiamo in considerazione canali ideali in cui i frame non possono essere alterati, modificati o cancellati. Andremo a considerare due protocolli, uno con e uno senza il controllo del flusso. Entrambi questi protocolli non gestiscono in alcun modo gli errori.
+    
+    \subsection{Protocollo semplice}
+        Questo primo protocollo non gestisce gli errori come abbiamo detto, ma nemmeno il flusso: infatti assumiamo che il ricevente possa elaborare i dati praticamente immediatamente, e che il suo buffer di ricezione operi quindi in maniera istantanea.
+        
+        Siccome non c'è bisogno di alcun tipo di controllo, lo strato di collegamento del mittente riceve i dati dallo strato di rete, crea un frame e lo spedisce. In modo simile lo strato di collegamento del destinatario riceve un frame dallo strato fisico, estrae i dati dal frame e li passa allo strato di rete.
+        
+        Notiamo che il mittente non può spedire un frame fino a che lo strato di rete non fornisce un pacchetto dati da spedire. Allo stesso modo, il destinatario non può consegnare un pacchetto dati al proprio strato di rete fino a che non riceve un pacchetto dati. Questo protocollo è quindi guidato dagli \textbf{eventi}. Questo vuol dire che la procedura che implementa il protocollo è sempre in esecuzione.
+        
+        Ciò consta praticamente di un ciclo infinito contenente attese di eventi. L'implicazione è che qualora iun evento non si presenti, si resterà in un'attesa infinita.
+        
+    \subsection{Protocollo stop-and-wait}
+        Il prossimo passo è non assumere che il destinatario sia in grado di elaborare un frame in arrivo istantaneamente. Il destinatario avrà quindi un buffer di ricezione da cui lo strato di rete leggerà i dati. Se il mittente invia frame troppo velocemente, rischia di trovare il buffer pieno e quindi di dover scartare frame. Il destinatario deve quindi poter inviare al mittente un segnale per indicare questa problematica e rallentare il flusso di dati. Difatti questa è una forma di \textbf{controllo del flusso}.
+        
+        Il mittente dunque invia un frame e attende un risconto da parte del destinatario per inviare il prossimo frame. Si noti che nonostante ci sono dei frame di riscontro, il protocollo è comunque unidirezionale.
+        
+        Nella progettazione di questo protocollo, insieme al flusso di dati dal mittente al destinatario, abbiamo anche un flusso di dati opposto. In teoria per realizzare questo protocollo servirebbe un collegamento half-duplex, in quanto una sola delle due direzioni è utilizzata in un dato momento, ma nella realtà si ricordi che i collegamenti sono bidirezionali.
+        
+        Abbiamo quindi due eventi, la richiesta di spedizione di frame (che può avvenire in rapida successione) da parte dello strato di rete, e la ricezione di un riscontro da parte del destinatario, la quale deve invece può solo seguire la spedizione di un pacchetto. Per questo motivo la ricezione del riscontro funge da collo di bottiglia, e l'algoritmo deve bloccare l'invio di nuovi frame fino alla conferma del destinatario.
+        
+\section{Canali con rumore}
+    Abbiamo incluso un controllo del flusso, ma in canali di comunicazione reali serve anche un controllo degli errori.
+    
+    \subsection{Stop-and-wait ARQ}
+        Il \textbf{protocollo stop-and-wait ARQ}, con richiesta di ripetizione automatica, aggiunge una semplice modifica al protocollo stop-and-wait per gestire gli errori. Usando uno dei metodi di rilevamento degli errori visti nei capitoli precedenti possiamo decidere di eliminare il frame e non inviare un riscontro di ricezione. Questo farà capire al mittente che il frame era fallato.
+        
+        La situazione in cui il canale causa la \textbf{perdita} o la \textbf{duplicazione} dei frame è più complicata da gestire. In particolare quando un frame arriva a destinazione è difficile capire con precisione se era il frame che si stava attendendo, un duplicato o un altro frame. Una semplice soluzione è numerare i frame. Se il destinatario riceve un frame fuori ordine vuol dire che qualche frame precedente è stato perduto o duplicato. Questo protocollo prevede la rispedizione sia dei frame arrivati con errori sia di quelli perduti. Se il mittente non riceve un riscontro per un determinato frame, lo rispedisce. Fa ciò mantenendo una copia del frame e un timeout entro il quale deve ricevere un riscontro.
+        
+        \subsubsection{Numeri di sequenza}
+            Dobbiamo dunque numerare sia i frame di dati sia quelli di quelli di riscontro. La prima domanda è quanti bit utilizzare per numerare i frame. Usando \textit{n} bit potremmo numerare i frame da 0 a $2^n - 1$ prima di ricominciare nuovamente da 0. Per motivi di efficienza, e siccome la numerazione andrà inviata insieme a ogni frame, vogliamo usare un numero di bit quanto minore possibile, ma vogliamo comunque rappresentino significativamente l'ordinamento.
+            
+            L'unica distinzione che ci interessa fare è distinguere un frame dal frame successivo. Infatti le tre situazioni in cui possiamo trovarci sono:
+            \begin{itemize}
+                \item Il frame \textit{x} arriva al destinatario senza errori; il destinatario invia un riscontro e il mittente invia il frame \textit{x + 1}.
+                
+                \item IL frame \textit{x} arriva al destinatario senza errori; il destinatario invia un riscontro il quale viene perso durante la ritrasmissione, quindi il mittente invia di nuovo il frame \textit{x}. Il destinatario si aspettava il frame \textit{x + 1} quindi si accorge della duplicazione.
+                
+                \item Il frame arriva danneggiato o viene perduto; il destinatario non invierà ovviamente nessun riscontro, il timeout scadrà e quindi il frame verrà inviato di nuovo. Il destinatario si aspetterà di ricevere proprio questo frame, e quindi l'ordine è preservato.
+            \end{itemize}
+            
+            Per realizzare ciò è sufficiente un bit, e dunque i valori 0 e 1. Infatti le tre situazioni precedentemente descritte possono essere soddisfatte con un solo bit, e logicamente possiamo immaginare che il ricevente si aspetti una sequenza di 0, 1, 0, 1, etc. Se questa sequenza viene rotta c'è stato un errore nella trasmissione.
+            
+        \subsubsection{Numeri di sequenza per i riscontri}
+            I riscontri hanno i numeri di sequenza dei frame che il destinatario si aspetta di ricevere. Se quindi il frame con numero di sequenza 1 è arrivato senza problemi, il frame ACK avrà numero di sequenza 0, e viceversa.
+            
+        Questo protocollo è molto inefficiente, soprattutto per canali con grandi larghezze di banda. Questa inefficienza deriva dal fatto che non è possibile spedire altri frame fino alla ricezione dell'ACK del precedente. Per canali molto capienti quindi la maggior parte della larghezza di banda va effettivamente sprecata.
+        
+        \subsubsection{Pipelining}
+            Nei protocolli di rete spesso un'azione viene utilizzata prima che la precedente sia giunta a terminazione. Questa tecnica si chiama \textbf{pipelining}, o esecuzione a catena. Il protocollo appena visto non prevede alcun tipo di pipelining, mentre quelli che andremo a vedere lo usano per migliorare le prestazioni.
+            
+    \subsection{Go-Back-N ARQ}
+        Questo protocollo spedisce più frame prima di aspettarsi un qualsiasi riscontro. Questo migliora l'efficienza di utilizzo del canale trasmissivo. Dovremo inoltre mantenere in memoria tutti i frame spediti fino all'arrivo di un riscontro.
+        
+        Siccome spediamo più frame contemporaneamente, avremo bisogno di più numeri di sequenza per ordinarli correttamente, rappresentabili con un certo numero di bit \textit{m}.
+        
+        \subsubsection{Finestra scorrevole}
+            Questo protocollo si basa sul concetto di finestra scorrevole, che sul nostro insieme di $2^n$ frame ne definisce alcuni validi. Non sempre la finestra del mittente e quella del destinatario coincidono.
+            
+            Per il mittente questo significa i frame in fase di spedizione, di cui alcuni potrebbero essere già stati spediti e sono in attesa di un riscontro, mentre altri potrebbero dover ancora essere spediti. Per ora assumeremo una finestra di dimensione massima $2^n - 1$ e statica, anche se alcuni protocolli contemplano finestre di dimensioni variabili.
+            
+            In ogni dato momento la finestra divide i frame in quattro zone:
+            \begin{enumerate}
+                \item I frame che precedono la finestra, i quali sono stati spediti e per i quali è stato ricevuto un riscontro, e dei quali dunque il mittente non dovrà più preoccuparsi; quindi non dovrà tenerli in memoria.
+                
+                \item I frame che sono stati spediti, ma per i quali non è stato ricevuto riscontro. Questi frame dovranno essere conservati in memoria in quanto il mittente non sa se ci sarà bisogno di rispedirli.
+                
+                \item La terza zona coincide con quella restante della finestra, contente frame che possono essere spediti ma che non sono ancora stati spediti. Questo può accadere per esempio se lo strato di rete non ha ancora preparato i dati per lo strato di collegamento.
+                
+                \item La quarta zona è composta dai frame che seguono la finestra. Questi non possono essere usati finché la finestra non li ricopre.
+            \end{enumerate}
+            
+            La finestra è un'astrazione, in realtà vengono usate tre variabili, due per indicare l'inizio e la fine della finestra e una per dividere gli elementi, che in pratica indica il prossimo elemento da spedire.
+            
+            In questo tipo di protocollo i riscontro sono cumulativi, e quindi la finestra può scorrere di più posizioni all'arrivo di un determinato riscontro.
+            
+            La \textbf{finestra del destinatario} invece è un caso speciale ed è costituita di un solo frame. Questo ha senso in quanto il destinatario è interessato a ricevere solo uno specifico frame alla volta. Più nello specifico, questo significa che i frame devono arrivare in ordine. Quando il frame all'interno della finestra arriva, viene inviato un riscontro e la finestra viene fatta scorrere di una posizione verso destra.
+            
+        \subsubsection{Timeout}
+            Nel protocollo di tipo ARQ va usato un \textbf{timeout} per determinare la rispedizione di frame non riscontrati. Potremmo pensare di usare un timeout per ogni frame, ma un altro metodo è utilizzare un solo timeout; in particolare per il primo frame della finestra, siccome scadrà prima di tutti gli altri timeout. Se questo timeout scade, verranno rispediti tutti i frame non riscontrati.
+            
+        \subsubsection{Riscontri}
+            Il destinatario spedisce un riscontro quando il frame arriva senza errori e nell'ordine previsto. Se il frame arriva con errori o in un ordine anomalo il destinatario può scartarlo per eseguire altre azioni. In questo caso il timeout scadrà e il frame verrà rispedito. Non è necessario per il destinatario inviare un riscontro per ogni frame; essendo essi cumulativi, può inviare un riscontro ed esso varrà anche per i frame precedenti.
+            
+        \subsubsection{Rispedizione di un frame}
+            Quando il timeout scade, il mittente rispedisce tutti i frame già spediti ma non ancora riscontrati. Se per esempio su 6 frame spediti scadrà il timeout del frame 3, verranno rispediti il 3, 4, 5 e 6. Da qui deriva il nome del protocollo, in quanto esso va \textit{indietro} al primo frame non riscontrato e rispedisce da lì.
+            
+    \subsection{Ripetizione selettiva ARQ}
+        Il protocollo appena visto soffre molto in termini di efficienza nei canali con molti errori: in questi casi un singolo frame errato potrebbe causare la rispedizione di un intero insieme di frame, operazione che chiaramente satura la rete.
+        
+        Sarebbe in questi casi conveniente rispedire solo i frame danneggiati, cosa che viene resa possibile dal protocollo di \textbf{ripetizione selettiva ARQ}. Si ottiene una maggiore efficienza al prezzo di una gestione degli eventi più complessa da parte del destinatario.
+        
+        \subsubsection{Finestre}
+            Abbiamo bisogno di una finestra più piccola rispetto al protocollo go-back-N. In particolare la dimensione massima è $2^{n-1}$. 
+            
+            La finestra del destinatario ha invece una struttura totalmente diversa rispetto a quella utilizzata nel protocollo go-back-N. La sua dimensione è uguale a quella della finestra del mittente. Il destinatario può ricevere frame in ordine sparso fino a riempire il buffer, e quando un frame arriva, tutti i precedenti possono essere passati allo strato di rete. In questo senso lo strato di collegamento esegue una sorta di riordinamento; può ricevere frame in ordine sparso ma li passa allo strato di rete già ordinati.
+    
+    \subsection{Piggyback}
+        I protocolli visti in precedenza sono tutti unidirezionali, nonostante la presenza di frame di riscontro quali ACK e NAK che viaggiano in direzione opposta. In situazioni reali i dati viaggiano in entrambe le direzioni e così anche i frame di riconoscimento.
+        
+        La tecnica del \textbf{piggyback} prevede di usare i frame che portano dati da un punto all'altro per trasportare anche le informazioni di controllo che viaggiano nella stessa direzione. Quando c'è necessità di inviare informazioni di controllo ma non c'è traffico dati, è chiaramente possibile inviare solo i primi.
+        
+        Nei protocolli bidirezionali utilizziamo a tutti gli effetti due istanze di protocolli unidirezionali, orientate in maniera inversa. Queste però lavorano in sinergia, in quanto trasportano sia dati che informazioni di controllo.
+        
+\section{Protocollo PPP}
+    Come si evince dal nome (\textit{Point-to-Point Protocol}), questo è un protocollo per le connessioni punto-punto molto usato. Infatti fornisce la connessione a Internet e definisce fra le altre cose, il formato dei frame, incapsulamento dei dati, negoziazione dello scambio dei dati e della connessione, procedura di autenticazione, configurazione degli indirizzi di rete.
+    
+    Tuttavia ci sono anche dei punti negativi, e in particolare: non fornisce supporto per connessioni multipunto, un controllo del flusso, e inoltre fornisce un controllo degli errori ma molto semplice, che per esempio non garantisce l'arrivo in ordine dei frame, problema di cui dovrà occuparsi lo strato superiore.
+    
+    \subsection{Framing}
+        Il protocollo PPP è orientato ai byte. In particolare un frame PPP è suddiviso in questa maniera:
+        \begin{itemize}
+            \item \textbf{Delimitatore.} Posto all'inizio e alla fine del frame, vale 01111110.
+            
+            \item \textbf{Indirizzo.} Contiene sempre il valore 11111111 (indirizzo di broadcast).
+            
+            \item \textbf{Controllo.} Contiene sempre il valore 11000000. Come abbiamo detto questo protocollo non fornisce controllo del flusso, e quindi questo campo è funzionalmente inutile. I due punti possono decidere di ometterlo, insieme al precedente, durante la fase di negoziazione della connessione.
+            
+            \item \textbf{Protocollo.} Identifica il protocollo usato nel livello superiore. Solitamente composto da due byte, ma i punti possono mettersi d'accordo e usarne uno solo.
+            
+            \item \textbf{Dati.} Qui vengono inseriti i dati o altre informazioni. Per evitare che il delimitatore si presenti qui viene usata la tecnica di byte stuffing. Il limite superiore è solitamente 1500 byte, ma i punti possono accordarsi per cambiarlo in fase di negoziazione; qualunque limite venga scelto, se non viene raggiunto viene usato del padding per rimepire i byte mancanti.
+            
+            \item \textbf{CRC.} Contiene un codice CRC di 2 o 4 byte.
+        \end{itemize}
+        
+        \subsection{Fasi di transizione}
+            Una connessione PPP può trovarsi in vari stati:
+            \begin{itemize}
+                \item \textbf{Chiusa.} Il collegamento non è in uso. La linea fisica non viene utilizzata.
+                
+                \item \textbf{Negoziazione.}  Le due parti si mettono d'accordo sulle opzioni che verranno usate durante la trasmissione dati. Se va a buon fine si passa alla fase di autenticazione.
+                
+                \item \textbf{Autenticazione.} Fase opzionale, avviene solo se richiesta da una delle due parti. Ci si scambia pacchetti per verificare l'identità delle due parti. Se va a buon fine si passa allo stato di configurazione, altrimenti si chiude la connessione.
+                
+                \item \textbf{Configurazione.} Si configurano opzioni per i protocolli di rete. Questo è necessario perché il protocollo PPP permette l'utilizzo di diversi protocolli di rete.
+                
+                \item \textbf{Aperta.} In questo stato è possibile scambiare pacchetti dati. La connessione rimane aperta finché uno dei due nodi non richiede una chiusura della connessione.
+                
+                \item \textbf{Chiusura.} La connessione viene eliminata. Vari pacchetti vengono scambiati per liberare il canale fisico.
+            \end{itemize}

@@ -1,0 +1,125 @@
+\section{Introduzione}
+    Una delle questioni più importanti nello sviluppo di un sistema elaborativo è la gestione dell'I/O. Siccome i vari dispositivi dediti a questo scopo sono molto diversi in funzionalità e velocità, altrettanto specializzati devono essere i metodi di controllo, i quali costituiscono il \textit{sottosistema di I/O} del kernel, il quale separa il resto del kernel dalla complessità di gestione dei dispositivi di I/O.
+    
+    Nonostante ci sia, col passare del tempo una sempre maggiore tendenza a creare standard per l'I/O, vediamo anche una sempre maggiore varietà fra i dispositivi stessi. Questa eterogeneità trova soluzione nella presenza di \textbf{driver dei dispositivi}, i quali offrono al sottosistema di I/O una interfaccia comune per l'accesso ai dispositivi, in maniera simile a come le syscall forniscono un'interfaccia uniforme tra le applicazioni e il sistema operativo.
+    
+\section{Hardware di I/O}
+    Una buona parte dell'hardware di I/O rientra nelle categorie comuni che conosciamo, come memorizzazione e output video. Ciononostante, esistono dispositivi specializzati in ambienti professionali. Anche con una grande varietà di dispositivi, bastano alcuni concetti per capirne il funzionamento e come il sistema operativo può controllarli.
+    
+    Un dispositivo comunica con un sistema elaborativo inviando segnali attraverso un cavo o l'etere, e comunica con il calcolatore tramite un punto di connessione (\textbf{porta}). Quando più dispositivi condividono un insieme di fili, la connessione è detta \textit{bus}, la quale si avvale di protocolli rigidamente definiti per stabilire quali dati possono essere inviati e in quale forma. Se abbiamo un dispositivo A collegato a un dispositivo B e quest'ultimo collegato a un dispositivo C, che a sua volta si collega alla porta di un calcolatore, si ottiene il \textbf{collegamento in daisy chain}, che di solito funziona come un bus.
+    
+    Un \textbf{controllore} è un insieme di componenti elettronici che può far funzionare una porta, un bus o un dispositivo. Questi possono essere più semplici (il controllore di una semplice porta seriale, implementato con un singolo circuito) o meno (il controllore di un canale a fibra di un data center, che ha spesso una scheda dedicata). Questo dipende dalla complessità del protocollo da controllare.
+    
+    \subsection{I/O memory mapped}
+        L'unità di elaborazione deve comunicare al dispositivo di memorizzazione quali dati scrivere in quali registri, e questo classicamente avveniva tramite comandi speciali che specificavano il byte o parola da trasferire a quale porta I/O. In alternativa gli indirizzi di controllo del dispositivo sono mappati in un sottoinsieme dello spazio degli indirizzi della CPU, che può quindi usare normali istruzioni di trasferimento dati. Questa tecnica, quando supportata dai controllori, si chiama \textbf{I/O memory mapped} (\textit{mappato in memoria}).
+        
+        Col tempo ci si è spostati sempre più verso quest'ultima tecnica in quanto è più performante. Se pensiamo infatti a un dispositivo grafico per esempio, che deve trasferire anche milioni di byte al secondo, è più facile trasferirli in una regione di memoria piuttosto che inviare milioni di istruzioni a un dispositivo. Per questo motivo e per una maggiore semplicità d'uso, oggi è molto più comune vedere controllori che supportano \textbf{I/O memory mapped}.
+        
+        Il controllo di un dispositivo I/O consiste solitamente di quattro registri: 
+        \begin{itemize}
+            \item\textbf{\texttt{data-in}:} La CPU legge da questo registro per ricevere dati.
+            \item\textbf{\texttt{data-out}:} La CPU scrive su questo registro per emettere dati.
+            \item\textbf{\texttt{status}:} Contiene alcuni bit che possono essere letti dalla CPU per ottenere informazioni sullo stato del dispositivo, come per esempio se ha terminato il comando corrente.
+            \item\textbf{\texttt{control}:} Può essere scritto per attivare alcuni comandi o modificare il comportamento del dispositivo, per esempio modificando la dimensione delle parole.
+        \end{itemize}
+        
+    \subsection{Polling}
+        Il protocollo completo per l'interazione fra un controllore e la CPU può essere intricato, ma la nozione di \textbf{handshaking} è semplice: è un modo di coordinare due attori, per esempio tramite un \texttt{bit busy}. In particolare quando la CPU deve accedere a un dispositivo di memorizzazione, controlla questo bit in una situazione di \textit{busy wait}, o \textbf{polling}.
+        
+        Il polling è un'operazione tipicamente veloce, ma se la CPU raramente trova un dispositivo disponibile, ciò potrebbe diventare inefficiente. In questi casi potremmo preferire che il dispositivo comunichi alla CPU quando è libero, tramite una \textbf{interruzione} (\textit{interrupt}).
+        
+    \subsection{Interruzioni}
+        Il meccanismo alla base dell'interruzione si avvale di un input dell'hardware della CPU chiamato \textbf{linea di richiesta dell'interruzione}, della quale la CPU controlla lo stato dopo ogni istruzione. Quando rileva il segnale di un controllore su questa linea, salva lo stato corrente e salta alla \textbf{routine di gestione dell'interruzione} (\textit{interrupt-handler routine}). Questa procedura determina la causa dell'interruzione, esegue l'elaborazione necessaria, ripristina lo stato ed esegue una istruzione \texttt{return from interrupt}, la quale fa tornare la CPU allo stato precedente.
+        
+        Questo meccanismo di base permettere a un sistema di rispondere a un evento asincrono, come un controllore che diviene pronto per essere usato. In un sistema moderno, considerando che in un sistema a singolo utente possiamo avere anche migliaia di interruzioni al secondo, serve un sistema di gestione più raffinato:
+        \begin{enumerate}
+            \item Si deve poter postporre la gestione delle interruzioni in fasi critiche dell'elaborazione.
+            
+            \item Si deve poter passare il controllo all'appropriato gestore delle interruzioni, senza dover fare polling per determinare quale abbia generato l'interruzione.
+            
+            \item Si deve disporre di più livelli di interruzione, divisi per priorità.
+            
+            \item Abbiamo bisogno di un modo per permettere a un'istruzione di ottenere l'attenzione immediata del sistema, per errori come i page fault e la divisione per zero. Vedremo che questo compito è svolto dalle trap.
+        \end{enumerate}
+        
+        In un calcolatore moderno queste caratteristiche sono fornite dalla CPU e dal \textbf{controllore hardware delle interruzioni}.
+        
+        La maggior parte delle CPU ha due linee di richiesta delle interruzioni:
+        \begin{itemize}
+            \item \textbf{Interruzioni non mascherabili,}\item dedicate eventi quali errori di memoria irrecuperabili.
+        
+            \item \textbf{Interruzioni mascherabili,} la quale può essere disattivata dalla CPU prima dell'esecuzione di sezioni di codice critiche che non devono essere interrotte.
+        \end{itemize}
+        
+        Il meccanismo di interruzioni accetta spesso un indirizzo - un numero che seleziona una specifica procedura da un \textbf{vettore delle interruzioni}, contenente gli indirizzi di memoria dei vari gestori delle interruzioni. Lo scopo è ridurre la necessità di controllare ogni singolo dispositivo. Nonostante ciò, spesso abbiamo più dispositivi che elementi del vettore. Il compromesso prende forma nel \textbf{concatenamento delle interruzioni}, che prevede per ogni elemento del vettore di essere la testa di una lista di gestori delle interruzioni. La CPU chiama uno alla volta gli elementi di questa lista, finché non ne trova uno che può soddisfare l'interruzione. Questo è un buon compromesso fra l'overhead di una tabella delle interruzioni enorme e l'inefficienza di avere un solo gestore delle interruzioni.
+        
+        Il meccanismo di gestione delle interruzioni realizza anche un sistema di priorità, che permette di gestire prima le interruzioni di priorità maggiore senza necessariamente mascherare tutte quelle di priorità minore.
+        
+        Il sistema fa vari utilizzi delle interruzioni. Per esempio al suo avvio le usa per stabilire quali dispositivi sono presenti e mappare correttamente i loro gestori delle interruzioni, oppure le usa per gestire molte eccezioni, o ancora per gestire la memoria virtuale, e in particolare i page fault. Un altro utilizzo è tramite l'implementazione delle \textit{chiamate di sistema}, che spesso vengono eseguiti dai programmi tramite routine di libreria che controllano i parametri passati, li assemblano in una struttura dati adatta e infine chiamano un'istruzione detta \textbf{interruzione software} o \textbf{trap}, la quale ha un operando che identifica il servizio del kernel desiderato. Le trap hanno generalmente una priorità minore rispetto alle interruzioni generate da dispositivi.
+        
+    \subsection{Accesso diretto alla memoria (DMA)}
+        Quando dobbiamo trasferire grandi quantità di memoria, il controllo dei bit di stato da parte della CPU per ogni byte, detto \textbf{I/O programmato}, sembra essere uno spreco. In gran parte dei sistemi si evita di sovraccaricare la CPU assegnando parte di questi compiti a un processore specializzato chiamato controllore dell'\textbf{accesso diretto alla memoria} (\textbf{DMA}, \textit{direct memory access}). Per dar avvio a un trasferimento DMA, la CPU scrive in memoria un blocco di comando per il DMA, il quale contiene un puntatore alla locazione dei dati da trasferire, uno alla destinazione, e il numero di byte. Alla CPU a questo punto basta scrivere l'indirizzo di questo blocco nel controllore DMA e procedere con le altre attività. Il controllore DMA quindi procede agendo direttamente sul bus della memoria, senza aiuto da parte della CPU.
+        
+        L'handshaking tra il controllore DMA e il controllore del dispositivo avviene tramite una coppia di fili detti \textbf{DMA-request} e \textbf{DMA-acknowledge}. Il controllore del dispositivo manda un segnale sulla linea DMA-request quando una word è disponibile per il trasferimento, al che il controllore DMA prende controllo del bus della memoria, presenti l'indirizzo desiderato ai fili di indirizzamento della memoria e invia un segnale su DMA-acknowledge. Quando il controllore del dispositivo riceve quest'ultimo segnale, trasferisce in memoria la word e rimuove il segnale da DMA-request.
+        
+        Quando il controllore del DMA prende possesso del bus di memoria, la CPU è temporaneamente disabilitata dall'accedere alla memoria centrale, fenomeno noto come \textbf{sottrazione di cicli}. Questo migliora tuttavia le prestazioni generali del sistema nonostante il rallentamento della CPU, in quanto avviene in congiunzione di un massiccio trasferimento di dati. In alcuni dispositivi si esegue l'\textbf{accesso diretto alla memoria virtuale}, o \textbf{VDMA}, caso in cui si utilizzano indirizzi virtuali che verranno poi tradotti in indirizzi fisici; questo permette a due dispositivi memory mapped di scambiarsi dati senza far intervenire la CPU.
+        
+        Come possiamo immaginare, solitamente i processi non hanno accesso diretto ai controllori dei dispositivi, ma usano funzioni di libreria fornite dal kernel per fare richieste di operazioni a basso livello. Nel caso di memoria non protetta, possiamo accedere direttamente ai controllori, ottenendo prestazioni molto maggiori ma potenzialmente causando errori fatali. I sistemi operativi non concedono quasi mai ai processi questi privilegi in quanto potrebbero volutamente o meno causare errori gravi.
+        
+    \subsection{Concetti principali dell'hardware I/O}
+        Sebbene i dettagli dell'hardware I/O siano molto complessi, ecco un sommario dei concetti generali:
+        \begin{itemize}
+            \item bus;
+            
+            \item controllore;
+            
+            \item porta di I/O e i suoi registri;
+            
+            \item procedura di handshaking tra la CPU e il controllore di un dispositivo;
+            
+            \item esecuzione dell'handshaking per mezzo del pollng o delle interruzioni;
+            
+            \item delega dell'I/O a un controllore DMA nel caso di trasferimenti di grandi quantità di dati;
+        \end{itemize}
+        
+        In seguito discuteremo di come possiamo fornire a un sistema la possibilità di installare nuovi dispositivi senza riscrivere il sistema operativo e di come possiamo definire una efficace interfaccia di I/O.
+        
+\section{Interfaccia di I/O delle applicazioni}
+    In questo paragrafo parliamo degli standard di I/O, andando a spiegare per esempio come possa un sistema prelevare dati da un disco senza sapere di che disco si tratti o come faccia un computer a installare nuovi dispositivi di memorizzazione senza modificare il sistema operativo.
+    
+    Parliamo di astrazione, incapsulamento e stratificazione del software. In particolare, possiamo astrarre i dispositivi di I/O per identificarne alcuni tipi generali; ad ognuno di questi si accede tramite un'\textbf{interfaccia}. Le differenze specifiche sono incapsulate nei moduli del kernel detti driver dei dispositivi, che sono specializzati internamente per i dispositivi per cui sono stati sviluppati, ma comunicano esternamente tramite queste interfacce comuni.
+    
+    Lo scopo dei \textbf{driver} è di nascondere al sottosistema di I/O dettagli relativi ai dispositivi, in maniera simile a come il kernel stesso nasconde ai programmi dettagli relativi alla struttura della memoria o all'hardware. Questo metodo semplifica la produzione di nuovi dispositivi, in quanto fornisce ai progettisti la possibilità di rendere compatibile il proprio dispositivo con un'interfaccia già esistente come SATA, o di scrivere uno o più driver che lo rendano compatibile con le interfacce più diffuse. I vantaggi di ciò sono chiari: non è necessario aspettare che venga sviluppato del codice per accomodare il nuovo dispositivo, e inoltre un singolo dispositivo può essere compatibile con più interfacce cambiando semplicemente il driver.
+    
+    Quest'ultima caratteristica ha anche i suoi svantaggi; difatti i driver per i vari dispositivi e sistemi operativi possono differire molto. Alcune delle differenze sono per esempio:
+    \begin{itemize}
+        \item \textbf{Trasferimento a flusso di caratteri o a blocchi.} Il primo trasferisce i dati un byte alla volta, il secondo trasferisce interi blocchi di byte.
+        
+        \item \textbf{Sequenziale o accesso diretto.} Il primo trasferisce dati in un ordine preciso definito dal dispositivo (un modem), mentre un utente del secondo può richiedere l'accesso a una qualsiasi delle locazioni di memoria (una SSD).
+        
+        \item \textbf{Dispositivi sincroni o asincroni.} Il primo trasferisce dati con cadenza regolare e prevedibile, sincronizzata in qualche modo col resto del sistema, mentre il secondo ha tempi di risposta variabili o comunque non coordinati con gli altri eventi del computer.
+        
+        \item \textbf{Condivisibili o dedicati.} Il primo può essere usato in maniera concorrente da diversi dispositivi o thread, cosa impossibile per un dispositivo dedicato.
+        
+        \item \textbf{Velocità di funzionamento.} Può variare ampiamente.
+        
+        \item \textbf{Lettura e scrittura, solo lettura o solo scrittura.} Le varie modalità di accesso e trasmissione dei vari dispositivi.
+    \end{itemize}
+    
+    Per ciò che riguarda l'accesso delle applicazioni ai dispositivi, la maggiore parte di questi dettagli sono nascosti, e si è rivelato stabile e sufficiente definire qualche classe di accesso in cui ricadono più o meno tutti i dispositivi. Le convenzioni principali includono l'I/O a flusso, a blocchi, l'accesso di file mappati in memoria e le socket di rete. I sistemi operativi possono fornire chiamate speciali per dispositivi aggiuntivi come orologi e timer.
+    
+    La maggior parte dei sistemi operativi ha anche una \textit{escape} o \textit{back door} che permette il passaggio di comandi trasparenti da un'applicazione a un driver di dispositivo.
+    
+    \subsection{Dispositivi con trasferimento a blocchi e a caratteri}
+        L'interfaccia per i \textbf{dispositivi a blocchi} sintetizza tutti gli aspetti per accedere ai dispositivi basati sul trasferimento di blocchi di dati. Le funzioni di questa interfaccia possono essere sintetizzate con i comandi \texttt{read()}, \texttt{write()} e \texttt{seek()} nel caso il dispositivo sia ad accesso casuale; l'utilizzo di questi comandi è al fine di nascondere i dettagli e le differenze di basso livello fra i vari dispositivi.
+        
+        Alcune applicazioni nonché il sistema operativo, possono trattare questi dispositivi, qualora lo ritengano più conveniente, come una sequenza di blocchi, nel qual caso parliamo di \textbf{I/O a basso livello}, o \textit{raw I/O}. Questo può essere utile qualora un'applicazione implementi per esempio un buffer o un lock, in quanto sarebbe inutile o contraddittorio averne una versione aggiuntiva del sistema operativo. Ciò comporta purtroppo anche una perdita di tutte le funzioni del sistema operativo. Un'alternativa che si sta diffondendo comporta in una modalità d'accesso ai file che disabiliti buffer e lock; nel mondo UNIX questo si chiama \textbf{I/O diretto}.
+        
+        La tastiera invece è un esempio di un dispositivo a cui si accede tramite un'interfaccia a \textbf{flusso di caratteri}. Le chiamate di sistema fondamentali in questo caso sono \texttt{get()} e \texttt{put()}, che permettono di acquisire o inviare un carattere.
+        
+    \subsection{I/O non bloccante e asincrono}
+        Un altro aspetto dell'interfaccia delle chiamate di sistema è la scelta fra I/O bloccante e non bloccante. Quando un'applicazione esegue una \textbf{chiamata di sistema bloccante}, essa procede a passare dalla coda dei processi pronti del sistema operativo a una coda di processi in attesa. Tornerà alla coda dei processi pronti quando la chiamata di sistema termina. La maggior parte delle applicazioni esegue chiamate di tipo \textbf{bloccante}, perché ciò rende molto più comprensibile il codice e prevedibile il loro comportamento, ma possiamo immaginare situazioni in cui chiamate non bloccanti sono necessarie, come per esempio un'interfaccia grafica che permette l'interazione del mouse mentre l'interfaccia grafica viene aggiornata, o un dispositivo che legge frame dalla memoria e contemporaneamente li decomprime e li mostra a schermo. Una delle possibilità per un progettista è sviluppare un'applicazione a più thread, nelle quali un thread esegue una chiamata bloccante mentre gli alti continuano il proprio lavoro.
+        
+        Una possibile alternativa alle chiamate di sistema non bloccanti consta nelle \textbf{chiamate di sistema asincrone}. Esse restituiscono immediatamente il controllo al chiamante senza attendere che l'I/O sia stato completato. Quando lo sarà, il suo risultato verrà comunicato al chiamante inserendolo nel suo spazio di indirizzamento, tramite un evento o interrupt o ancora una procedura di richiamo (\textit{callback}).
+        
+        In tutti i moderni sistemi operativi si verificano attività asincrone, le quali sono spesso non gestite da utenti o applicazioni ma fanno parte del funzionamento del sistema, come richieste di rete o scrittura su disco.

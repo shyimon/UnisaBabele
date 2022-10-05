@@ -1,0 +1,74 @@
+\chapter{System Design Document}
+
+    Lo scopo di questo documento è di spiegare in maniera comprensibile e semplice come la soluzione individuata (il design) può essere applicato. Per fare ciò dobbiamo adottare metodi adatti alle tecnologie a nostra disposizione (rendendo tuttavia il progetto più adatto possibile ad evolversi e adattarsi a sviluppi tecnologici futuri), ma anche tecniche ingegneristiche come il Divide \& Conquer. Otteniamo ciò modellando il nostro sistema come un insieme di sottosistemi più semplici.
+    Ciò che idealmente vogliamo ottenere è che i suddetti sistemi siano molto coesi ma debolmente accoppiati.
+    
+    Il \textbf{System Design} si occupa inoltre di questioni come mapping hardware/software, concorrenza, boundary conditions, etc.
+    
+    \section{Design Goals}
+    
+        Abbiamo ovviamente una serie di obiettivi per il sistema, come per esempio portabilità, facilità di comprensione, performance, etc.
+        
+        Questi design goals però non sono tutti uguali e indipendenti. Innanzitutto ogni \textbf{stakeholder} vuole ottenere i design goals per lui più appetibili, cosa che ovviamente non è fattibile per un gran numero di stakeholders molto omogenei perché un sistema che rispetta tutti i possibili design goals nella maniera ottima richiederebbe risorse e tempo infiniti.
+        
+        Inoltre ci sono da considerare i cosiddetti \textbf{design trade-offs}. Questi sono collegamenti fra i vari design goals che fanno decrescere uno all'aumentare dell'altro. Alcuni esempi sono: \textbf{Functionality vs. Usability}, \textbf{Cost vs. Robustness}, \textbf{Cost vs. Reusability}, etc.
+        
+        La scelta di uno dei due lati del trade-off dipende da molte cose, come per esempio budget, mercato, tipo di sistema da sviluppare, etc.
+    
+        
+    \section{Decomposizione in sottosistemi}
+        In UML, un \textbf{sottosistema} è identificato da un package, ed è un insieme di classi, associazioni, operazioni, eventi e vincoli collegati fra loro in qualche modo più o meno coeso.
+        
+        Il \textbf{servizio} che un sottosistema offre sono le operazioni fornite dallo stesso, e sono specificate dall'\textbf{interfaccia} del sottosistema, che definisce i servizi da e verso il sottosistema ma non quelli interni allo stesso.
+        
+        \subsection{Layers e partizioni}
+            La scelta dei sottosistemi da realizzare deve essere ponderata. Idealmente vogliamo che i vari sottosistemi siano internamente molto coesi ma poco accoppiati fra loro, allo scopo di diminuire la complessità, soprattutto relativamente a cambiamenti futuri.
+            
+            L'\textbf{alta coesione} si ottiene quando le classi del sottosistema sono fortemente dipendenti l'una dall'altra ed eseguono task simili, mentre il \textbf{basso accoppiamento} fra i sottosistemi si ottiene con la bassa dipendenza fra gli stessi, e agevola la manutenzione.
+            
+            Per ottenere questo delicato equilibrio possiamo avvalerci di \textbf{layers} e \textbf{partizioni}.
+            
+            \paragraph{Partizioni} Un sistema è partizionato quando è diviso verticalmente in sottosistemi, indipendenti fra loro o quasi, che forniscono un servizi con un livello uguale o simile di astrazione.
+            
+            Due partizioni si conoscono a vicenda ma non in maniera profonda, e possono chiamarsi mutualmente.
+            
+            \paragraph{Layers} Un layer è una divisione orizzontale. Un sottosistema appartenente a un certo layer fornisce servizi a sottosistemi appartenenti a layers inferiori.
+            
+            Di due layers A e B in cui A è più in alto, A chiama B a runtime, e A dipende da B a tempo di compilazione.
+            
+            A tal proposito abbiamo due tipi di architettura:
+            \begin{itemize}
+                \item \textbf{Architettura chiusa (layering opaco):} Ogni layer può invocare operazioni solo dal layer immediatamente inferiore. Questo offre una alta manutenibilità e flessibilità, in quanto andando a modificare un layer solo quello immediatamente superiore potrebbe essere impattato.
+                \item \textbf{Architettura aperta (layering trasparente):} Ogni layer può invocare operazioni da qualunque altro layer inferiore. Questo diminuisce la manutenibilità ma aumenta l'efficienza al runtime.
+            \end{itemize}
+            
+            Oltre al paradigma a layer generico ce ne sono altri, fra cui:
+            \begin{itemize}
+                \item \textbf{Client/server:} Un server fornisce i servizi a un client in quanto provider, e non conoscendone l'interfaccia. Il suddetto client conosce l'interfaccia del server e ne usa i servizi. L'utente usa i livelli più alti dell'architettura, ossia il client.
+                \item \textbf{Repository based:} È un particolare stile di client/server in cui c'è un sottosistema che funge da client e il repository che funge da serve. Quest'ultimo fornisce servizi per la gestione dei dati.
+                \item \textbf{Model/View/Controller:} I sottosistemi sono \textbf{Model}, responsabile della gestione dei dati, \textbf{View}, responsabile della rappresentazione dei dati all'utente, e \textbf{Controller}, responsabile dell'instradamento dei dati inseriti dall'utente e della notifica delle modifiche al Model.
+            \end{itemize}
+            
+    \section{Concorrenza}
+        La concorrenza in un sistema viene presa in considerazione per migliorare le performance.
+        
+        Sappiamo che due oggetti sono inerentemente concorrenti se possono ricevere e processare eventi contemporaneamente senza interagire fra di loro, e in questo caso dovrebbero trovarsi quindi all'interno di due diversi thread di controllo. Al contrario, due oggetti che includono attività mutualmente esclusive dovrebbero trovarsi sullo stesso thread.
+        
+    \section{Mapping Hardware/Software}
+        In questa attività decidiamo se realizzare i componenti come hardware o software, come il modello a oggetti può essere mappato su questi componenti, e ci chiediamo per esempio se è possibile aumentare l'efficienza distribuendo il calcolo su più processori, se abbiamo abbastanza spazio fisico di archiviazione, etc.
+        
+    \section{Data Management}
+        Andiamo in questa sezione a individuare quali oggetti devono essere persistenti, cosa che può essere realizzata con \textbf{files} (semplici ed efficaci, a basso livello, ma richiedono programmazione aggiuntiva per interpretare i dati scritti), o tramite \textbf{database} (più portabile e potente ma meno efficiente).
+        
+    \section{Global Resource Handling \& Security}
+        Descrive i diritti di accesso per le varie classi di attori e le policies di sicurezza come per esempio autenticazione e crittografia.
+        
+        Possiamo modellare l'accesso degli attori alle classi con una \textbf{matrice di accesso}: le righe rappresentano gli attori, mentre le colonne rappresentano le classi delle quali vogliamo regolare l'accesso. Un elemento della matrice è una lista di operazioni che possono essere eseguite da istanze di un attore su un'istanza della classe.
+        
+    \section{Decisioni sul controllo del software}
+        Si sceglie il tipo di controllo: \textbf{Implicito} (non procedurale, linguaggi dichiarativi) o \textbf{esplicito} (linguaggi procedurali). Quest'ultimo può a sua volta essere \textbf{centralizzato} o \textbf{decentralizzato}.
+        
+        Un controllo esplicito centralizzato si divide a sua volta in \textbf{procedure driven} o \textbf{event driven}
+        
+    \section{Boundary Conditions}
+        Servono a regolare casi d'uso relativi a inizializzazione del sistema, shutdown e failure di vario tipo.

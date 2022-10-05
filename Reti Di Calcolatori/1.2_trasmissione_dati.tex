@@ -1,0 +1,176 @@
+Una rete di comunicazione è progettata con lo scopo di trasferire dati da un punto all'altro. Siccome i dati possono essere in forma digitale o analogica, deve esserci corrispondenza fra la rappresentazione dei dati e il tipo di dati che il canale trasmissivo è adatto a trasportare.
+
+Per questo motivo discutiamo di conversioni analogico-digitale e digitale-analogico. Tuttavia potremmo aver bisogno di convertire un segnale da digitale in digitale per esempio, se le due larghezze di banda usate per rappresentarlo sono diverse, o da analogico in analogico.
+
+\section{Conversione digitale-digitale}
+    Vediamo varie tecniche per rappresentare dati digitali con segnali digitali. Vediamo la codifica di linea, sempre necessaria, e le codifiche a blocchi e scrambling, non necessarie.
+    
+    \subsection{Codifica di linea}
+        La codifica di linea è il processo di convertire dati digitali, che assumeremo memorizzati come sequenze di bit, in segnali digitali.
+        
+        L'\textbf{unità di base dei dati} è il più piccolo elemento che rappresenta informazioni, ossia il bit. Analogamente, l'\textbf{unità di base dei segnali} si chiamerà elemento del segnale, ed è il più piccolo elemento trasmissibile sul canale. Chiaramente gli elementi del segnale devono rappresentare gli elementi dei dati.
+        
+        Un dato importante è il \textbf{rapporto di elementi dei dati rappresentati da ogni elemento del segnale}. Un elemento del segnale potrebbe rappresentare, nel caso più semplice, un solo bit, nel qual caso $r = 1$. Questo valore potrebbe non coincidere con 1 nel caso in cui per rappresentare un singolo bit siano necessari più elementi del segnale, o nel caso in cui ogni elemento del segnale rappresenti più bit.
+        
+        \paragraph{Velocità dei dati e velocità del segnale} La velocità dei dati è la quantità di unità di base dei dati che possono essere spediti in un secondo, e viene misurata in bit per secondo, o bps. La velocità del segnale ha misura analoga e si misura in \textbf{baud}. Il nostro scopo è di riuscire ad ottenere una velocità dei dati quanto più alta possibile senza necessariamente aumentare troppo quella dei segnali. Vogliamo, in pratica, riuscire a trasportare più dati con meno segnali.
+        
+        \paragraph{Linea di base} Durante la decodifica di un segnale digitale, il ricevente calcola in tempo reale la media della potenza del segnale che riceve. Questa è chiamata linea di base. I valori nuovi vengono confrontati con la linea di base per stabilirne il valore. Una lunga sequenza di valori uguali può causare uno spostamento della linea di base e rendere più difficoltosa la decodifica, e questo è da considerare durante la progettazione di uno schema di codifica.
+        
+        \paragraph{Componenti DC} Quando il voltaggio di un segnale digitale è costante per molto tempo, vengono usati voltaggi molto bassi per trasmetterlo. Queste frequenze vicino a zero vengono chiamate componenti a corrente diretta (DC Component), e questo è da tenere in considerazione, in quanto alcuni sistemi non permettono il passaggio di frequenze particolarmente basse. Occorrono quindi schemi di codifica che impediscano a una lunga sequenza di bit uguali di essere spediti (in un caso banalmente semplice possiamo pensare di codificare 0 con 01 e 1 con 10).
+        
+        \paragraph{Sincronizzazione automatica} Per avere una sincronizzazione dei segnali inviati e di quelli ricevuti, i clock del mittente e del destinatario devono corrispondere. Un segnale auto-sincronizzante spedisce, insieme alle solite informazioni, delle informazioni relative al tempo vengono aggiunte. Queste possono essere specifiche sequenze di segnali che indicano l'inizio, la fine o qualsiasi altro punto di un gruppo di bit.
+        
+    \subsection{Schemi di codifica di linea}
+        \subsubsection{Schemi unipolari}
+            In uno schema unipolare, tutti i valori di tutti i livelli del segnale sono o positivi o negativi, ossia hanno lo stesso segno. In questo caso consideriamo lo 0 sia come positivo che come negativo.
+            
+            \paragraph{NRZ} Questa codifica, Non-Return-to-Zero, rappresenta il valore 1 con un voltaggio positivo e il valore 0 con un voltaggio nullo. Rispetto alla sua controparte polare è piuttosto costosa.
+            
+        \subsection{Schemi polari}
+            In questo schema, i livelli possono assumere sia valori positivi che negativi. Possiamo per esempio un valore negativo per rappresentare 1 e un valore positivo per rappresentare 0.
+            
+            \paragraph{NRZ Polare} In questo schema vengono usati due livelli, uno positivo e uno negativo. Ne esistono due versioni:
+            \begin{itemize}
+                \item Nella versione \textbf{NRZ-Level}, o NRZ-L, il livello del voltaggio determina il valore del bit; un voltaggio positivo rappresenta il bit 1, uno negativo rappresenta il bit 0.
+                
+                \item Nella versione \textbf{NRZ-Invert}, o NRZ-I, l'entità del bit è rappresentata dalla presenza o meno di un cambiamento. Se il voltaggio cambia il bit è 1, se resta invariato è 0.
+            \end{itemize}
+            
+            Nella versione L, la linea di base converge a uno dei due valori per lunghe sequenze di bit uguali, siano essi 1 o 0. La versione I è invece più resistente, in quanto riscontra questo problema solo per lunghe sequenze di zeri.
+            
+            Un secondo problema sta nella sincronizzazione. Mentre per lo schema NRZ-L è difficile sincronizzare i due clock per lunghe sequenze di bit uguali, per lo schema NRZ-I ciò avviene, come prima, solo per lunghe sequenze di zeri.
+            
+            Lo schema NRZ-L soffre, anche in questo caso, più della controparte Invert, nel caso di cambi di polarità. In tali casi tutti gli zeri diventano uni e viceversa, cosa che per lo schema Invert non crea alcun problema.
+            
+            \paragraph{RZ} Lo schema Return-to-Zero risolve il problema della sincronizzazione dei clock usando tre livelli del segnale: uno positivo, uno negativo e uno uguale a zero. Questo schema usa un voltaggio positivo per rappresentare 1 e uno negativo per rappresentare 0, ma torna poi a zero fino all'inizio della trasmissione del prossimo bit. Questo ritorno a zero può essere usato come elemento di sincronizzazione. Siccome per rappresentare un bit sono necessari due cambiamenti del segnale, questa codifica è meno efficiente (richiede una larghezza di banda maggiore). Inoltre, nonostante non soffra di problemi relativi alle componenti DC, riscontra difficoltà con l'inversione di polarità.
+            
+            \paragraph{Codifiche bifase} L'idea della transizione al centro di ogni bit combinata con lo schema NRZ-L, produce la \textbf{codifica Manchester}. Ogni bit è rappresentato da due cambiamenti di voltaggio, e in particolare il bit 0 è rappresentato da un cambiamento da voltaggio positivo a negativo, mentre il bit 1 da un cambiamento da voltaggio negativo a positivo.
+            
+            L'idea del cambiamento al centro di ogni bit combinata invece con la codifica NRZ-I, produce lo schema \textbf{Manchester differenziale}. Anche in questo caso abbiamo un cambiamento di voltaggio per ogni bit, ma anziché determinare l'entità del bit, determina la presenza di un cambiamento; la presenza di una transizione all'inizio dell'intervallo rappresenta un cambiamento di bit, e viceversa. Il problema principale di queste codifiche è che è richiesta una velocità doppia per implementarle. Tuttavia non riscontriamo problemi relativi alle componenti DC, alla sincronizzazione o alla linea di base.
+            
+        \subsubsection{Codifiche bipolari}
+            Negli schemi di codifica bipolare vengono usati tre valori; uno uguale a zero, uno positivo e uno negativo.
+            
+            \paragraph{Codifiche AMI e pseudoternaria} La codifica \textbf{AMI} (Alternate Mark Inversion) rappresenta il valore zero con il voltaggio nullo e il valore uno con voltaggi positivi e negativi che si alternano. La codifica \textbf{pseudoternaria} rappresenta i valori in maniera opposta: zero è rappresentato da voltaggi positivi e negativi che si alternano, mentre uno è rappresentato dal voltaggio nullo.
+            
+            Le codifiche bipolari sono state sviluppate come alternativa allo schema NRZ; infatti la loro velocità è uguale, ma non abbiamo componenti DC, in quanto per valori positivi il voltaggio si alterna fra positivo e negativo, mentre per valori zero il voltaggio è nullo, il che non comporta un problema nel contesto delle componenti DC.
+            
+            I problemi di sincronizzazione rimangono; in futuro vedremo come ovviarvi tramite tecniche di scrambling.
+            
+        \subsubsection{Codifiche multilivello}
+            Queste si sono rese necessarie nel caso, abbastanza comune, in cui abbiamo bisogno di inviare più dati, o in cui abbiamo bisogno di inviarne gli stessi una minore larghezza di banda.
+            
+            \paragraph{2B1Q} Questa tecnica codifica sequenze di due bit con un elemento di segnale a quattro livelli. Il destinatario deve chiaramente essere capace di distinguere fra i quattro segnali. Non ci sono livelli del segnale inutilizzati.
+            
+    \subsection{Codifica a blocchi}
+        Per fornire una certa protezione dagli errori e uno strumento di sincronizzazione, è necessario introdurre una certa ridondanza. La codifica a blocchi fa proprio questo, trasformando una \textit{parola sorgente} di \textit{n} bit in una \textit{parola ccodice} di \textit{m} bit, con $m > n$. Le codifiche prendono il nome di \textit{nB/mB}, con valori di $n$ ed $m$ opportuni.
+        
+        \paragraph{4B/5B} Questa codifica è stata progettata per essere usata con lo schema di codifica di linea NRZ-I. Suddetto schema ha un problema di sincronizzazione, e in particolare, con lunghe sequenze di zeri non si ha un punto di riferimento. La codifica 4B/5B non permette mai la presenza di più di tre 0 consecutivi, risolvendo questo problema, ma non quello delle componenti DC.
+    
+\section{Conversione analogico-digitale}
+    Nel mondo delle comunicazioni la chiara tendenza è quella di lavorare con segnali quanto più possibile digitali. Andiamo quindi a vedere metodi per convertire dati analogici (come il suono di un microfono o il segnale ottico di una videocamera) in dati digitali, che possiamo poi inviare tramite una delle tecniche precedentemente viste.
+    
+    \subsection{Modulazione a impulsi codificati}
+        Questa tecnica, detta anche PCM (Pulse Code Modulation) è la tecnica più comune per convertire dati analogici in segnali digitali. I tre passi che esegue sono:
+        \begin{itemize}
+            \item Il segnale originale viene \textbf{campionato}, cioè misurato a intervalli regolari.
+            
+            \item Il segnale viene \textbf{quantizzato}, ossia rappresentato attraverso un insieme finito di valori.
+            
+            \item Il risultato della quantizzazione viene \textbf{codificato} tramite una sequenza di bit.
+        \end{itemize}
+        
+        \subsubsection{Campionamento}
+            Nel \textbf{campionamento ideale}, gli impulsi del segnale analogico vengono misurati in precisi istanti spaziati fra loro in maniera regolare. Questo tuttavia è difficile da implementare, e si ricorre al \textbf{campionamento naturale}, che misura gli impulsi del segnale analogico per brevi intervalli che includono l'istante di campionamento ideale. La tecnica più comune tuttavia è il campionamento a gradini, che è simile al campionamento naturale ma produce valori costanti.
+            
+            Per quanto riguarda la \textbf{velocità di campionamento}, dal teorema di Nyquist possiamo ricavare che per ottenere un segnale fedele a quello originale, bisogna campionarlo con una frequenza doppia rispetto alla massima frequenza raggiunta dal segnale.
+            
+        \subsubsection{Quantizzazione}
+            Il risultato della fase di campionamento sono una serie di impulsi rappresentati da valori reali che spaziano dall'ampiezza minima a quella massima. Tuttavia essi vanno approssimati a valori discreti. Ciò avviene nel seguente modo:
+            \begin{itemize}
+                \item Si individuano $V_{min}$ e $V_{max}$ valori minimi e massimi dell'ampiezza del segnale.
+                
+                \item L'intervallo $[V_{min}, V_{max}]$ viene diviso in L intervalli di ampiezza $\Delta$. Il valore scelto per L determina la precisione della quantizzazione.
+                
+                \item Ogni intervallo viene rappresentato da un valore di quantizzazione compreso fra 0 e L-1.
+                
+                \item La misura del campionamento viene approssimata con il valore di quantizzazione del corrispondente intervallo.
+            \end{itemize}
+            
+            Il valore di L varia in base all'ampiezza del segnale da rappresentare e dalla precisione che vogliamo ottenere. Un segnale che varia fra soli due valori è ben rappresentabile da una L pari a 2, ma un segnale più complesso come la voce umana ha bisogno di una L più alta, comunemente nell'ordine delle centinaia. Un segnale video ha una L nell'ordine delle migliaia.
+            
+            L'\textbf{errore di quantizzazione} dipende dal numero di livelli usati, e varia da $-\Delta/2$ a $\Delta/2$. Questo causa una riduzione del rapporto SNR, causando quindi una riduzione della capacità del canale.
+            
+        \subsubsection{Codifica}
+            Siccome i valori di quantizzazione spaziano da 0 a L-1, possiamo semplicemente rappresentarli con i rispettivi valori binari. Chiaramente per L livelli saranno necessari $\log_2L$ bit. La velocità necessaria per per rappresentare il segnale campionato è data dalla formula
+            \begin{center}
+                Velocità dei dati = velocità di campionamento $\times$ numero di bit per campione
+            \end{center}
+            
+        \subsubsection{Ripristino del segnale originale}
+            Il segnale originale può essere ripristinato tramite un decodificatore PCM, che convertirà i bit ricevuti in impulsi per poi applicare un filtro passa basso, così da rendere più fluido il segnale. Se è stata usata una frequenza di campionamento di almeno il doppio della frequenza massima del segnale e se L è abbastanza alto, il segnale riprodotto sarà perfettamente fedele a quello originale.
+            
+\section{Modalità di trasmissione}
+    Possiamo avere diversi tipi di connessioni fra dispositivi, suddivise in base a quanti cavi li collegano. Un singolo cavo può trasmettere un solo bit per volta, mentre più fili possono trasmettere più bit parallelamente.
+    
+    \subsection{Trasmissione parallela}
+        Questo metodo di trasmissione permette di suddividere i bit da inviare in gruppi di n bit ciascuno, da inviare su n cavi.
+        
+        Questo metodo di trasmissione, a parità di tutti gli altri parametri, è più veloce ma più costoso, motivo per cui viene usato solo per brevi distanze.
+        
+    \subsection{Trasmissione seriale}
+        Questo tipo di trasmissione è più lenta, in quanto invia i bit uno alla volta, ma anche meno costosa. Si può classificare in sincrona, asincrona e isincrona.
+        
+        \paragraph{Trasmissione seriale asincrona}
+            In questo tipo di trasmissione seriale, la sincronizzazione del segnale non è importante. Il destinatario riuscirà a interpretare i bit arrivati indipendentemente dalla velocità con cui arrivano. Questo significa anche che non è prevedibile quando il prossimo bit arriverà, e ciò va segnalato. Può essere usato per esempio un bit addizionale all'inizio di ogni byte. Questo bit, che solitamente è 0, viene chiamato \textbf{bit di start}. Analogamente possono essere usati uno o più \textbf{bit di stop} per segnalare la fine di un gruppo di bit. Fra due byte consecutivi può esserci un'assenza di trasmissione, segnalata da un'assenza di segnale o da un flusso continuato di bit di stop.
+            
+            Queste accortezze di sincronizzazione a livello di bit ma non di byte rendono la trasmissione piuttosto lenta. Tuttavia resta comunque appetibile, soprattutto in casi in cui non ci interessa una velocità molto elevata. Per esempio nella trasmissione di dati digitati su una tastiera all'unità centrale di un computer, la velocità di digitazione è lenta relativamente a quella di trasmissione e il ritardo fra un carattere e l'altro è imprevedibile.
+            
+        \paragraph{Trasmissione seriale sincrona}
+            In questo tipo di trasmissione, il pacchetti di bit di base viene chiamato \textbf{frame}, il quale può contenere anche molti byte. Essi vengono spediti come un flusso continuo di 0 e 1, e sta al destinatario dividerli correttamente in byte.
+            
+            Questo tipo di trasmissione è chiaramente più veloce ma richiede un maggior lavoro di sincronizzazione, che viene risolto nello strato di collegamento. È anche bene sottolineare che nonostante non ci siano periodi di mancanza di segnale all'interno del frame, potrebbero essercene fra un frame e il prossimo.
+            
+        \paragraph{Trasmissione seriale isincrona}
+            Garantisce l'arrivo dei dati a una velocità costante. Molto utile per streaming di dati multimediali, per i quali variazioni di ritardo fra i pacchetti di dati non sono accettabili.
+            
+\section{Conversione digitale-analogico}
+    Abbiamo visto che tre parametri descrivono un'onda sinusoidale: ampiezza, frequenza e fase. Per rappresentare segnali digitali, possiamo far variare uno di questi tre parametri. Questo ci offre tre diversi meccanismi per la modulazione di dati digitali in un segnale analogico: la \textbf{modulazione ASK} (Amplitude Shift Keying) che varia l'ampiezza, la \textbf{modulazione PSK} (Pulse Shift Keying) che varia la fase, e la \textbf{modulazione FSK} (Frequency Shift Keying) che varia la frequenza. Un quarto meccanismo varia sia l'ampiezza che la fase.
+    
+    \subsection{Aspetti della conversione digitale-analogico}
+        Nella trasmissione analogica, il dispositivo mittente produce un segnale ad alta frequenza che serve come riferimento pere il segnale che trasporta l'informazione. Questo segnale viene chiamato \textbf{segnale} o \textbf{frequenza portante}. Il destinatario si sintonizza si questa frequenza, e le informazioni vengono trasmesse variando il segnale rispetto a una delle tre caratteristiche di un'onda sinusoidale. Questo tipo di modifica viene chiamata modulazione.
+        
+    \subsection{Modulazione ASK}
+        In questo tipo di modulazione viene variata l'ampiezza, lasciando frequenza e fase invariati.
+        
+        \subsubsection{Modulazione ASK binaria (BASK)}
+            Questa tecnica prevede due livelli del segnale, nonostante un elemento del segnale analogico possa assumere molte ampiezze diverse. Le due forme comunemente utilizzate sono una con ampiezza nulla, l'altra con ampiezza uguale a quella massima del segnale portante. Questi due valori dell'ampiezza possono rappresentare i due valori dei bit.
+            
+            Per quanto riguarda la \textbf{larghezza di banda}, essa è proporzionale alla velocità del segnale, ma dipende anche da un valore $d$ che è dato da aspetti relativi alla modulazione e al filtraggio. La banda utilizzata è importante, in quanto possiamo scegliere la frequenza portante, la quale vi si troverà al centro. Questo non è un problema in quanto l'ampiezza varierà fra questa frequenza portante e un'ampiezza nulla.
+            
+    \subsection{Modulazione FSK}
+        Per la modulazione FSK varia la frequenza, mentre ampiezza e fase restano costanti.
+        
+        \subsubsection{Modulazione FSK binaria (BFSK)}
+            Questo tipo di modulazione utilizza due frequenze portanti, normalmente molto alte e molto vicine. Una delle due viene usata per il valore 0, l'altra per il valore 1.
+            
+    \subsection{Modulazione PSK}
+        Questo tipo di modulazione viene variata la fase del segnale, lasciando invariate frequenza e ampiezza.
+        
+        \subsubsection{Modulazione PSK binaria (BPSK)}
+            Nella versione binaria, si hanno due tipi di segnali, uno con fase di $0^{\circ}$, e l'altro con fase di $180^{\circ}$. Questo tipo di modulazione è più resistente al rumore rispetto a quella in ampiezza, e inoltre non ha bisogno di due segnali portanti al contrario della FSK, ma ne mantiene la semplicità.
+            
+    \subsection{Quadratura PSK (QPSK)}
+        Questa versione della PSK utilizza quattro diverse fasi, potendo quindi usare due bit per ogni elemento del segnale.
+        
+\section{Conversione analogico-analogico}
+    Questo tipo di modulazione può essere necessaria se il canale a disposizione è passa-banda per esempio. Possiamo modulare l'ampiezza (\textbf{Amplitude Modulation}, AM), la frequenza (\textbf{Frequency Modulation}, FM) o la fase (\textbf{Phase Modulation}, PM).
+    
+    \subsection{Modulazione di ampiezza (AM)}
+        L'ampiezza del segnale modulato varia al cambiare dell'ampiezza del segnale modulante, mentre frequenza e fase restano invariati. Si usa spesso un semplice moltiplicatore per ottenere questo effetto.
+        
+    \subsection{Modulazione di frequenza (FM)}
+        Nella trasmissione in modulazione di frequenza invece, la frequenza del segnale portante viene modulata per rappresentare i cambiamenti dell'ampiezza del segnale originale, o modulante.
+        
+    \subsection{Modulazione di fase (PM)}
+        Mentre la frequenza e l'ampiezza restano invariate, la fase del segnale portante rappresenta l'ampiezza del segnale originale. Questa modulazione è equivalente alla modulazione in frequenza, solo con la differenza che mentre nella FM i cambiamenti del segnale portante sono proporzinali all'ampiezza del segnale modulante, nella PM sono proporzionali alla sua derivata.

@@ -1,0 +1,229 @@
+Il file system è spesso la parte più apparente di un sistema operativo, in quanto è quella parte che permette di memorizzare e visualizzare le informazioni e i dati del sistema stesso e degli utenti.
+
+Esso è tipicamente composto da un insieme di \textit{file} e una \textit{struttura della directory}, che organizza i file e fornisce le relative informazioni.
+
+\section{Concetto di file}
+    Un sistema elaborativo può supportare molti dispositivi di memorizzazione omogenei fra loro; per agevolare l'utilizzo del computer, il sistema operativo offre una versione logica unificata delle informazioni memorizzate, un'astrazione chiamata \textit{file}.
+    
+    Un \textbf{file} è un insieme di informazioni correlate, registrate in memoria secondaria cui è stato assegnato un nome. Essi possono rappresentare programmi, sotto forma di binari o file oggetto, dati, possono essere numerici, alfanumerici o binari, possono avere un formato specifico o meno. Quindi un file è un concetto estremamente generale.
+    
+    Data la struttura così generale il suo utilizzo si è esteso oltre i confini definiti originariamente, e oggi un file viene usato anche per mostrare, per esempio, informazioni sui processi.
+    
+    Se ha una struttura rigida, essa è definita dal \textbf{tipo}.
+    
+    \subsection{Attributi dei file}
+        Un attributo importante del file è il nome. Alcuni sistemi fanno differenza fra maiuscole e minuscole nel nome di un file, altri no; ma la cosa importante è che una volta ricevuto un nome, il file diventa indipendente dal processo, e da tutte le sue copie: a meno di un sistema di sincronizzazione possono essere rinominate, modificate e copiate ad infinitum.
+        
+        Un file ha attributi che possono variare in base al sistema operativo ma che solitamente comprendono i seguenti:
+        \begin{itemize}
+            \item \textbf{Nome.} Unica informazione umanamente leggibile.
+            
+            \item \textbf{Identificatore.} Etichetta unica, solitamente un numero, impiegata dal sistema per identificare il file.
+            
+            \item \textbf{Tipo.} Necessaria se ci sono diversi tipi di file, ne descrive la struttura.
+            
+            \item \textbf{Locazione.} Puntatore al dispositivo e alla locazione del file in tale dispositivo.
+            
+            \item \textbf{Dimensione.} Dimensione corrente in byte, parole o blocchi e opzionalmente la massima dimensione consentita.
+            
+            \item \textbf{Protezione.} Informazioni di controllo degli accessi che delineano chi può leggere, scrivere o eseguire il file.
+            
+            \item \textbf{Ora, data e identificazione dell'utente.} Dati assortiti che possono essere utili alla protezione, tracciamento o monitoraggio dell'utilizzo del file.
+        \end{itemize}
+        
+        I sistemi più moderni forniscono gli \textbf{attributi estesi dei file}, che comprendono la codifica dei caratteri e funzioni di sicurezza come la checksum.
+        
+        Gli attributi sono solitamente memorizzati nel sistema di directory; la directory contiene tipicamente il nome e l'identificatore del file, che vengono usati per localizzare le altre informazioni. Gli elementi di directory hanno un certo peso in quanto devono contenere tutte queste informazioni, e questo peso può essere anche dell'ordine dei MB o GB.
+        
+    \subsection{Operazioni sui file}
+        Un file è un \textbf{tipo di dato astratto}. Per definirlo adeguatamente è utile capire che operazioni possiamo eseguire su di esso. Un sistema operativo può fornire chiamare per creare, scrivere, leggere, spostare, cancellare e troncare un file, e queste possono anche rendere più chiare operazioni complesse come la ridenominazione di un file.
+        
+        \begin{itemize}
+            \item \textbf{Creazione.} Avviene in due passi: si deve innanzitutto trovare lo spazio necessario nel file system, e susseguentemente creare un nuovo elemento nella directory adeguata.
+            
+            \item \textbf{Scrittura.} Viene effettuata una chiamata di sistema che specifica il nome del file e le informazioni da scrivere. Il file viene individuato e le informazioni vengono scritte nella posizione indicata da un puntatore di scrittura, che viene aggiornato a ogni scrittura.
+            
+            \item \textbf{Lettura.} La chiamata di sistema in questo caso specifica il nome del file e il blocco di memoria in cui collocare le informazioni lette. Anche in questo caso si cerca il file nel sistema di directory ma si mantiene un puntatore di \textit{lettura}, che verrà aggiornato una volta completata la lettura. Di solito un processo legge o scrive un file, mantenendo un unico puntatore di posizione unico per il processo e in comune per lettura e scrittura, risparmiando memoria e rendendo strutturalmente più semplice il sistema.
+            
+            \item \textbf{Riposizionamento.} Anche nota come \texttt{seek}, semplicemente aggiorna il puntatore di posizione. Non richiede alcuna operazione di I/O.
+            
+            \item \textbf{Cancellazione.} Si cerca l'elemento specificato nella chiamata nel sistema di directory, si rilascia lo spazio allocato e si elimina l'elemento della directory.
+            
+            \item \textbf{Troncamento.} Si potrebbe voler svuotare un file pur lasciando intatti i suoi attributi. Piuttosto che obbligare la cancellazione e la creazione di un nuovo file, questo comando permette di lasciare intatti gli attributi pur azzerando la lunghezza di un file e rilasciando la relativa memoria.
+        \end{itemize}
+        
+        Queste sei operazioni comprendono l'insieme minimo di operazioni richieste per i file. Altre operazioni comuni comprendono l'aggiunta (\textbf{append}) di informazioni alla fine del file e la ridenominazione.
+        
+        Queste operazioni primitive si possono chiaramente combinare per generare operazioni più complesse. Potrebbero essere richieste informazioni come il proprietario o la data di creazione relative ai file. Per evitare la ricerca di un file nelle directory ogniqualvolta venga richiesta un'informazione simile, i sistemi operativi spesso richiedono di aprire (\texttt{open()}) un file prima di utilizzarlo in questo modo. Così facendo il file viene aggiunto alla \textbf{tabella dei file aperti} e ci si potrà riferire direttamente a lui fino al momento della chiusura. Le operazioni eseguibili su file non aperti sono la creazione e la cancellazione, oltre che banalmente l'apertura.
+        
+        Alcuni sistemi operativi aprono implicitamente un file al primo riferimento e lo chiudono quando il processo che l'ha aperto termina. La maggior parte dei sistemi operativi tuttavia richiede un'apertura esplicita, tramite la chiamata \texttt{open()} che spesso prende in input anche metodi di accesso come lettura, scrittura, etc. Si controlla che il file esista e che sia accessibile nella modalità specificata, e spesso si restituisce un puntatore alla sua entry nella tabella dei file aperti, che da quel momento verrà usata come nome per richiamarlo, onde evitare continue ricerche dispendiose nella tabella.
+        
+        La realizzazione delle chiamate di \textbf{apertura} e \textbf{chiusura} sono più complesse in ambienti multiutente in cui più processi possono aprire un singolo file. In questi contesti abbiamo spesso una tabella per ogni processo e una tabella di sistema. Abbiamo già parlato precedentemente della tabella di sistema; quella del processo specifica i file aperti da ogni processo e le informazioni sul loro utilizzo da parte del processo. La tabella di sistema contiene informazioni indipendenti dai processi come la posizione su disco o le dimensioni.
+        
+        In generale, la tabella dei file aperti contiene anche un \textit{contatore} delle aperture di ciascun file, indicante il numero di processi che hanno aperto quel file. Ogni \texttt{close()} decrementa questo contatore. Quando esso raggiunge zero il file non è più in uso e lo si elimina dalla tabella.
+        
+        Riassumendo, a ciascun file aperto sono associate le seguenti informazioni:
+        \begin{itemize}
+            \item \textbf{Puntatore al file.} Punta alla posizione per la lettura e la scrittura nel file. Unico per ogni processo.
+            
+            \item \textbf{Contatore dei file aperti.} 
+            
+            \item \textbf{Posizione nel disco del file.} Informazione necessaria per eseguire operazioni sul file. Mantenuta in memoria per evitare di doverla prendere dal disco ogni volta.
+            
+            \item \textbf{Diritti d'accesso.} Ciascun processo apre ciascun file in una certa modalità d'accesso. Informazione utile per permettere o negare successive richieste I/O.
+        \end{itemize}
+        
+        Alcuni sistemi operativi offrono la possibilità di applicare \textit{lock} ai file, o a parti di essi, per far fronte ad accessi concorrenti allo stesso file.
+        
+        I lock possono inoltre essere \textbf{obbligatori} (\textit{mandatory}), nel qual caso l'accesso viene negato finché il lock non viene rilasciato, o \textbf{consultivi} (\textit{advisory}), nel qual caso l'accesso è possibile tramite l'esplicita acquisizione del lock.
+        
+        Un lock obbligatorio assicura quindi l'integrità dei file, mentre uno consultivo lascia ai programmatori la responsabilità di lasciare i file in stati coerenti.
+        
+        In linea di massima, Windows adotta lock obbligatori, mentre UNIX ne adotta di consultivi.
+        
+    \subsection{Tipi di file}
+        Nella progettazione e nell'utilizzo di un sistema operativo si deve prendere in considerazione la possibilità di avere tipi diversi di file, quindi da trattare in modi particolari. Una tecnica comune di implementare ciò è l'inclusione del tipo nel nome del file. Il nome è in questo caso suddiviso in due parti, un nome e un'\textit{estensione}, solitamente separati da un punto. Il sistema operativo può a questo punto usare il nome stesso del file per stabilirne il tipo e quindi le operazioni che si possono eseguire su di esso, ma questa informazione è utile anche all'utente.
+        
+        Il sistema operativo UNIX si limita a memorizzare un semplice codice, detto \textbf{magic number}, all'inizio di alcuni file binari, per indicarne il tipo. Allo stesso modo utilizza i \textbf{magic cookie} all'inizio dei file di testo per indicare in quale linguaggio di programmazione sono scritti. Tuttavia questi codici non sempre ci sono, e UNIX non impone inoltre il tipo del file. Piuttosto l'estensione del nome viene usata come \textit{consiglio} sul programma da usare per aprire il file.
+        
+    \subsection{Struttura dei file}
+        I tipi di file si possono adoperare anche per indicare la struttura interna dei file. I file sorgente e i file oggetto per esempio hanno una struttura corrispondente a quello che i programmi che dovranno leggerli si aspettano.
+        
+        Alcuni sistemi operativi supportano un insieme di strutture di file specifiche. Questo tuttavia aumenta considerevolmente le dimensioni del sistema operativo, in quanto il codice per gestire tutte queste strutture deve essere contenuto nel sistema operativo stesso. Un altro problema risiede nel fatto che talvolta dei file creati dall'utente potrebbero non corrispondere con nessuna delle strutture di file supportate dal sistema operativo, risultando quindi in più restrizione per il programmatore.
+        
+        La maggior parte dei sistemi operativi prevede un minimo di strutture supportate, che spesso corrispondono col solo file eseguibile. A monte di ciò, UNIX vede tutti i file come sequenze di byte, senza offrire la propria interpretazione, cosa che offre la massima flessibilità ma il minimo supporto. In questo caso ogni applicazione deve avere il suo modo per interpretare i file supportati in ingresso.
+        
+    \subsection{Struttura interna dei file}
+        Individuare l'offset o eseguire operazioni di I/O su file implica il trattamento di dati che non sempre corrispondono con le dimensioni di un blocco fisico di memoria. La soluzione a ciò è l'\textbf{impaccamento} di un certo numero di record logici in blocchi fisici.
+        
+        Per esempio in UNIX i file sono definiti come flussi di byte. In questo caso il record logico è di 1 byte, e il file system \textit{impacca} automaticamente i byte in blocchi fisici (per esempio 512 byte per blocco).
+        
+        Il file viene definito in termini di blocchi, e tutte le operazioni base di I/O vengono eseguite sui blocchi.
+        
+        Chiaramente questo sistema soffre di \textbf{frammentazione interna}, in quanto l'ultima porzione dell'ultimo blocco è spesso sprecata.
+        
+\section{Metodi di accesso}
+    I file memorizzano informazioni; al momento dell'utilizzo è necessario accedere a queste informazioni e trasferirle in memoria. Esistono diversi metodi di accesso ai file: per i sistemi che ne offrono più di uno, scegliere quello corretto costituisce un importante problema di progettazione.
+    
+    \subsection{Accesso sequenziale}
+        In questo metodo di accesso i record si elaborano uno dopo l'altro. È il metodo più comune, usato per esempio dai compilatori e dagli editor. Questo modello si rifà a un nastro.
+        
+        Le operazioni più comuni sono letture e scritture nel punto corrente del puntatore di posizione, ma in alcuni casi possiamo avere avanzamenti di suddetto puntatore di \textit{n} unità o reimpostazione di questo all'inizio del file.
+        
+    \subsection{Accesso diretto}
+        Modello che invece si rifà ai CD, assume che il file sia composto da blocchi di uguali dimensione e permette di leggerne o scriverne arbitrariamente, una volta fornito il loro indice.
+        
+        Questo modello è utile qualora volessimo accedere a grandi quantità di dati immediatamente. Spesso i database fanno uso di questo tipo di file.
+        
+        Un file di questo tipo può essere implementato rimuovendo il puntatore di posizione e passando quindi alle operazioni di lettura e scrittura un parametro che rappresenta l'indice di blocco, o mantenendo il puntatore ma permettendo di riposizionarlo a piacere.
+        
+        I blocchi in questione sono spesso identificati da un \textbf{numero di blocco relativo} piuttosto che assoluto. Questo vuol dire che il primo blocco di un file è rappresentato dall'indice 0.
+        
+        Alcuni sistemi operativi supportano un tipo di accesso, altri entrambi. In ogni caso si può simulare il corrispettivo. È abbastanza semplice simulare un file ad accesso sequenziale partendo da uno ad accesso diretto, ma piuttosto macchinoso e dispendioso il viceversa.
+        
+    \subsection{Altri tipi di accesso}
+        La creazione di altri tipi di accesso ai file implica spesso la definizione di un indice per il file, il quale contiene puntatori a vari blocchi d'interesse.
+        
+        Questo può migliorare di molto i tempi di ricerca e acceso per alcuni specifici casi. Nel caso di un file molto lungo, l'indice stesso potrebbe essere troppo lungo. In questo caso possiamo pensare di creare un indice per l'indice.
+    
+\section{Struttura delle directory}
+    La directory può essere vista come una tabella di simboli che traduce i nomi dei file nei loro contenuti. Una tale struttura deve fornire diverse funzioni, come la creazione di nuovi elementi, la cancellazione, la modifica e l'output di tutti gli elementi ordinati diversamente. Nel considerare la struttura logica di una directory si deve tener conto delle seguenti operazioni:
+    \begin{itemize}
+        \item \textbf{Ricerca di un file.} In particolare, deve esistere la possibilità di trovare tutti i file il cui nome soddisfi una certa espressione.
+        
+        \item \textbf{Creazione di un file.} E relativa aggiunta alla directory.
+        
+        \item \textbf{Cancellazione di un file.}
+        
+        \item \textbf{Elencazione di una directory.} Possibilità di elencare i file presenti nella directory e i relativi contenuti.
+        
+        \item \textbf{Ridenominazione di un file.} E relativa variazione di posizione nella directory in caso di ordinamento alfanumerico o simili.
+        
+        \item \textbf{Attraversamento del file system.} Si potrebbe voler accedere a ogni directory e a ogni file contenuto nelle varie directory. È inoltre opportuno salvare a intervalli regolari il contenuto e la struttura dell'intero file system in una copia di \textit{backup}.
+    \end{itemize}
+    
+    \subsection{Directory a un livello}
+        La struttura più semplice in assoluto per una directory. Tutti i file sono contenuti nella stessa directory e sono quindi facilmente gestibili e comprensibili.
+        
+        Le limitazioni di un tale sistema sono palesi. Ogni file deve avere un nome diverso, cosa sconveniente anche e soprattutto nel caso di un sistema multi-utente, e inoltre sono molto difficili da organizzare. All'aumentare del numero di file questo sistema diventa sempre meno conveniente.
+        
+    \subsection{Directory a due livelli}
+        La soluzione più ovvia ai problemi prima descritti prevede la creazione di una directory per ogni utente.
+        
+        In questo caso ogni utente dispone della \textbf{propria directory utente} (\textit{user file directory}, UFD). Quando comincia l'elaborazione per uno specifico utente si fa riferimento alla \textbf{directory principale} (\textit{master file directory}, MFD), la quale viene indicizzata con il numero di utente o un suo identificativo, e punta alla relativa directory utente.
+        
+        Tutte le operazioni relative alla directory avvengono solo internamente alla directory: non abbiamo quindi rischi di cancellare file di altri utenti, e inoltre possiamo creare file con nomi duplicati globalmente, ma comunque non localmente alla directory.
+        
+        Le stesse directory utente devono essere create e cancellate quando necessarie, cosa effettuata da uno specifico programma di sistema quando necessario, che possiamo immaginare realisticamente essere eseguito solo da un amministratore.
+        
+        Un primo problema che possiamo individuare di questo metodo organizzativo è che isola completamente gli utenti. Talvolta gli utenti potrebbero \textit{volere} accedere a file comuni. Talvolta sistemi di directory siffatti permettono ciò, e quando ciò accade c'è necessità di riferirsi a file non locali. Ciò avviene tramite un \textit{path name}, o \textbf{nome di percorso}, che è semplicemente la combinazione del nome utente e del nome del file. Possiamo immaginarlo anche come la navigazione di un albero alto 2.
+        
+        C'è da considerare il caso speciale dei file di sistema: componenti come loader, compilatori e altre parti integranti del sistema vengono spesso viste come file, ed essendo chiaramente utili a tutti gli utenti vanno trattate in modo speciale. Farne una copia in ogni directory utente è uno spreco di spazio, quindi la soluzione più diffusa è creare una speciale directory utente, per esempio \texttt{utente0}, contenente tutti i file di sistema. Quando un tale file serve, si cerca innanzitutto localmente, e se non viene trovato si fa automaticamente riferimento alla directory speciale appena definita. Questa lista di spazi virtuali in cui cercare viene chiamata \textit{search path} e può contenere una quantità potenzialmente illimitata di directory.
+        
+    \subsection{Directory con struttura ad albero}
+        La relazione fra il primo e il secondo livello della struttura a due livelli può essere facilmente generalizzata dando così origine a una struttura ad albero, nella quale abbiamo sempre una \textit{root directory} ma in cui gli utenti possono creare le proprie sottodirectory, permettendo un'organizzazione arbitrariamente granulare dei file. Ogni file ha inoltre un \textit{path name} unico. Questa è di gran lunga la struttura più diffusa.
+        
+        Ogni directory o sottodirectory contiene file, sottodirectory o entrambi. Le directory sono semplicemente file trattati in modo speciale. Le directory hanno tutte lo stesso formato interno, e per distinguerle dai file ci si avvale di un bit di ogni elemento della directory. Per creare e cancellarle sono inoltre necessarie speciali chiamate di sistema.
+        
+        Tipicamente, ogni utente dispone di una \textbf{directory corrente}, la quale dovrebbe contenere la maggior parte dei file utili per il processo. La ricerca di un file richiesto dal processo parte dalla directory corrente. Nel caso non venisse trovato deve essere specificato un \textit{path} o si deve cambiare la directory corrente, cosa che avviene tramite una chiamata di sistema adoperabile quante volte si desidera, e che prende in input il percorso della nuova directory, tipicamente relativo alla corrente. Ci possiamo immaginare questo percorso infatti come la navigazione dell'albero delle directory che parte dal nodo \textit{directory corrente}.
+        
+        Ogni utente ha quindi una directory corrente che viene assegnata all'inizio della sua sessione di lavoro. Può poi cambiare questa directory. Ogni figlio solitamente eredita la directory corrente dal padre al momento della creazione.
+        
+        I nomi di percorso possono essere di due tipi:
+        \begin{itemize}
+            \item \textbf{Nomi di percorso assoluti:} Inizia dalla radice dell'albero delle directory e specifica i nomi di ogni sottodirectory che lo porterà infine al file desiderato.
+            
+            \item \textbf{Nomi di percorso relativi:} Questo parte dalla directory corrente.
+        \end{itemize}
+        
+        In una struttura potenzialmente così profonda, la cancellazione di una directory non è una cosa banale: alcuni sistemi operativi cancellano una directory solo quando è già vuota, altri si prendono la responsabilità di cancellarne tutto il contenuto. Il secondo caso è più comodo ma più pericoloso. In entrambi i casi, una volta svuotata la directory basta cancellare l'elemento che la designa (in UNIX un semplice file) nella directory che la contiene.
+        
+        In una tale struttura anche l'accesso a file di altri utenti è semplice: basta specificarne il path o posizionarsi nella loro directory come directory corrente.
+        
+\section{Protezione}
+    Abbiamo già visto come i dati contenuti in un sistema elaborativo debbano essere protetti da danni fisici (la questione dell'\textit{affidabilità}). Ora vediamo come possono essere protetti da usi impropri (la questione della \textit{protezione}).
+    
+    La protezione può essere ottenuta in una moltitudine di maniere. Per un computer portatile monoutente basta chiuderlo in un cassetto, ma per un sistema multiutente abbiamo bisogno di metodi più sofisticati.
+    
+    \subsection{Tipi d'accesso}
+        La necessità di proteggere i file deriva dalla possibilità di accedervi. I sistemi che segregano i file dall'accesso di altri utenti non richiedono protezione. All'altro estremo dello spettro si può permettere un accesso senza alcuna restrizione. Essendo questi metodi eccessivi ognuno per i suoi motivi, spesso si opta per un \textbf{accesso controllato}.
+        
+        Si controlla l'accesso ponendo limitazioni sui tipi di accesso. Si possono infatti controllare diversi tipi di operazioni:
+        \begin{itemize}
+            \item \textbf{Lettura.}
+            
+            \item \textbf{Scrittura} o riscrittura.
+            
+            \item \textbf{Esecuzione.} E relativo caricamento in memoria.
+            
+            \item \textbf{Aggiunta.} Scrittura di nuove informazioni in coda ai file.
+            
+            \item \textbf{Cancellazione} e liberazione del relativo spazio.
+            
+            \item \textbf{Elencazione} del nome e degli attributi dei file.
+        \end{itemize}
+        
+        Operazioni di livello più avanzato come copiatura o ridenominazione sono possibili, ma spesso implementate da un programma che fa multiple chiamate base nella sequenza opportuna.
+        
+        Sono stati proposti diversi meccanismi di protezione, che hanno i loro vantaggi e svantaggi. Chiaramente ciò dipende anche dall'utilizzo che si deve fare del sistema.
+        
+    \subsection{Controllo degli accessi}
+        La soluzione più comune è rendere l'accesso dipendente dall'identità dell'utente, spesso realizzato tramite l'associazione di una \textbf{lista di controllo degli accessi} (\textit{access control list}, ACL) a ciascun file e directory. In tale lista sono specificati i nomi degli utenti e i relativi tipi di accesso consentiti. Quando un utente richiede un certo accesso a un file, si controlla la lista per quel tipo di accesso, e se l'utente che l'ha richiesto è presente si consente l'accesso, altrimenti si nega e si verifica un relativo errore.
+        
+        Questo metodo consente modalità di accesso e permessi piuttosto complessi, cosa positiva siccome ci offre un grande grado di controllo, ma il problema principale consiste nella lunghezza; basta immaginare un file condiviso da tutti gli utenti, ogni modalità di accesso dovrà listare ogni singolo utente. Il primo problema è che rende un compito tedioso la compilazione di tale lista, soprattutto se la lista di utenti non è nota a priori. Inoltre come secondo problema notiamo che l'elemento della directory che rappresenta il file che prima era di dimensione fissa è ora di dimensione variabile, rendendo più complicata la gestione della memoria.
+        
+        Possiamo condensare la lista di controllo degli accessi. Molti sistemi per fare ciò raggruppano gli utenti in tre classi distinte:
+        \begin{itemize}
+            \item \textbf{Proprietario.} L'utente che ha creato il file.
+            
+            \item \textbf{Gruppo.} Insieme di utenti che condividono il file e hanno bisogno di tipi di accessi simili.
+            
+            \item \textbf{Universo.} Tutti gli altri utenti del sistema.
+        \end{itemize}
+        
+        Il metodo della lista di controllo degli accessi e dell'accesso per categoria possono essere combinati quando necessario.
+        
+    \subsection{Altri metodi di protezione}
+        Un altro metodo di protezione consiste nell'associazione di una password a ciascun file. Nonostante possa risultare molto efficace nel proteggere file sensibili, c'è da considerare alcuni problemi: innanzitutto memorizzare tutte le password può essere dispendioso; l'utilizzo di password sensibili o della stessa password per tutti i file può metterli a rischio.
+        
+        Alcuni sistemi, per venire incontro alla necessità di proteggere gruppi specifici di file, permettono di applicare password alle directory, le quali hanno operazioni esclusive diverse rispetto a quelle dei file, in particolare creazione e cancellazione di file all'interno della directory. Potrebbe essere rilevante anche il controllo della presenza del file all'interno della directory.

@@ -1,0 +1,61 @@
+Nella pratica ci troviamo a operare con una larghezza di banda limitata. Per utilizzarla in maniera coerente ed efficace dobbiamo introdurre due concetti: il \textbf{multiplexing}, che mira a utilizzare tutta la banda combinando più canali in uno solo, e la \textbf{diffusione}, il cui obiettivo è espandere la larghezza di banda per introdurre la ridondanza necessaria a evitare errori ed interferenze.
+
+\section{Multiplexing}
+    Il problema principale a cui il multiplexing cerca di ovviare è l'utilizzo di una canale trasmissivo che mette a disposizione una larghezza di banda troppo grande per il segnale che deve essere inviato.
+    
+    In un sistema che usa multiplexing, $n$ linee (trasmissioni) condividono un unico canale di trasmissione fisico. Esse verranno combinate in un'unico segnale prima di essere inviate da un \textbf{multiplexer} (\textbf{MUX}). Una volta arrivate a destinazione un \textbf{demultiplexer} (\textbf{DEMUX}) riconvertirà il segnale negli $n$ originali.
+    
+    Esistono tre tecniche per eseguire il multiplexing, basate rispettivamente sulla frequenza, sulla lunghezza d'onda e sul tempo. Le prime due sono progettate per funzionare con segnali analogici, mentre la terza con segnali digitali.
+    
+    \subsection{Multiplexing a divisione di frequenza}
+        Il \textbf{multiplexing a divisione di frequenza} (\textbf{FDM}, \textbf{Frequency Division Multiplexing}) permette la modulazione dei segnali da spedire usando diverse frequenze portanti, le quali non devono interferire né le une con le altre, né con le frequenze originali. I segnali così ottenuti vengono combinati in un unico segnale composto che viene poi spedito sul canale trasmissivo.
+        
+        Chiaramente, nonostante questa tecnica di multuplexing sia stata progettata per funzionare con segnali analogici, è semplice immaginare come possa funzionare con dati digitali; abbiamo visto in precedenza che la conversione digitale-analogico e viceversa è spesso usata anche per permettere questa interoperabilità.
+        
+        Come abbiamo detto, durante la \textbf{fase di multiplexing}, dei segnali vengono modulati usando frequenze portanti diverse, le quali non interferiscono né fra di loro, né con i segnali originali. I segnali modulati così ottenuti vengono combinati in un unico segnale composto, che verrà inviato sul mezzo trasmissivo. Questo segnale contiene le informazioni di tutti i segnali originali.
+        
+        Durante la \textbf{fase di demultiplexing} invece una serie di filtri vengono usati per separare i singoli segnali, ancora tuttavia modulati. Un demodulatore viene poi utilizzato per separare i segnali originali dalle frequenze portanti che li hanno modulati.
+        
+    \subsection{Multiplexing a divisione di lunghezza d'onda}
+        Il \textbf{multiplexing a divisione di lunghezza d'onda} (\textbf{WDM}, \textbf{Wavelenght-division Multiplexing}) viene utilizzato per i cavi in fibra ottica. Difatti è molto simile alla tecnica vista in precedenza, con la differenza che le frequenze utilizzate sono molto alte, nello spettro luminoso e visibile.
+        
+        Lo strumento utilizzato come MUX e DEMUX è un \textbf{prisma}: questo, in base alla sua angolazione, può combinare raggi luminosi dalle basse bande di frequenza, in un unico raggio dalla banda molto più ampia. Un prisma con la stessa angolazione può poi separarli, fungendo così da demultiplexer.
+        
+    \subsection{Multiplexing sincrono a divisione di tempo}
+        Il \textbf{multiplexing a divisione di tempo} (\textbf{TDM}, \textbf{time division multiplexing}) è progettato per condividere un canale digitale; anziché condividere la larghezza di banda, condivide il tempo di utilizzo del canale. Ogni canale logico occupa un intervallo di tempo.
+        
+        Il multiplexing TDM può essere sincrono o statistico. Discutiamo qui di quello \textbf{sincrono}; in questa variante del multiplexing TDM, il collegamento viene suddiviso in intervalli di tempo e ogni intervallo viene sfruttato equamente da un canale logico a prescindere dalla presenza o meno di dati da inviare.
+        
+        Il numero di bit che si discono per ogni intervallo di tempo viene chiamato \textit{frame}. Per $n$ cnali logici, il frame sarà suddiviso in $n$ intervalli di tempo. L'intervallo di tempo $i$-esimo all'interno del frame sarà occupato da un pacchetto dati appartenente sempre all'$i$-esimo canale logico. Questo permette di non avere bisogno di sincronizzazione e overhead per capire a quale canale logico appartiene quale pacchetto dati, in quanto è un'informazione prefissata.
+        
+        Chiaramente fino ad ora abbiamo assunto che i vari canali trasmettano alla stessa velocità. Tuttavia spesso non è così, e per preservare la consistenza del multiplexing facciamo uso di tue tecniche: il multiplexing \textbf{multilivello} e il multiplexing \textbf{multiturno}.
+        
+        \paragraph{Multiplexing multilivello} Questa tecnica viene usata se abbiamo linee che trasmettono l'una al multiplo delle velocità delle altre. Se per esempio abbiamo una linea che trasmette a 80kbps e due che trasmettono a 40kbps ciascuna, possiamo multiplexare prima le seconde per creare una linea intermedia che trasmette a 80kbps, che andremo poi a multiplexare con l'altra, ottenendo un solo segnale a 160kbps. Chiaramente il reciproco andrà fatto durante il demultiplexing.
+        
+        \paragraph{Multiplexing multiturno} Con questa tecnica allochiamo a certe linee più turni di altre, all'interno dello stesso frame. Questa tecnica è più flessibile in quanto le velocità non devono necessariamente essere l'una multipla dell'altra ma basta siano tutte multiple di una velocità di base.
+        
+        \subsubsection{Sincronizzazione dei frame}
+            Nel multiplexing TDM, è necessario sincronizzare i frame, in quanto il demultiplexer deve distinguere con precisione fra un frame e l'altro. Questo viene spesso fatto tramite bit di sincronizzazione.
+            
+    \subsection{Multiplexing statistico a divisione di tempo}
+        Nel multiplexing visto fino ad ora c'è un grave difetto; a una linea che non ha dati da inviare viene data comunque la sua sezione del frame. Nel multiplexing statistico invece, i turni vengono assegnati dinamicamente. Nello specifico, un turno viene assegnato a una linea solo quando questa ha dati da spedire. Il frame creato da un multiplexer statistico è pertanto formato da un numero di parti pari al numero di linee che hanno dati da spedire.
+        
+        \subsubsection{Indirizzamento}
+            Il problema principale del TDM statistico è che non abbiamo più una relazione precisa fra la posizione dei dati all'interno del frame e il loro canale di appartenenza. Dobbiamo quindi inviare dei bit aggiuntivi che indichino proprio il canale di appartenenza.
+            
+        \subsubsection{Dimensione di un frame}
+            In funzione di quanto appena detto, nel TDM statistico è bene aumentare la dimensione dei blocchi di dati e quindi dei frame, per tenere alto il rapporto fra i dati inviati e i bit di indirizzamento. Solitamente un blocco di dati spedito con questa tecnica contiene svariati byte di dati, per pochi bit di indirizzamento.
+            
+        \subsubsection{Sincronizzazione}
+            Non avendo i frame usati in questa tecnica una dimensione fissa, il metodo della sincronizzazione previamente descritto non può essere più utilizzato.
+            
+        \subsubsection{Larghezza di banda}
+            Abbiamo spesso situazioni in cui non tutti i canali necessitano di inviare dati. Pertanto, la capacità del canale fisico soddisferà non il traffico massimo, ma quello medio.
+            
+\section{Diffusione dello spettro}
+    Questa tecnica, come il multiplexing, mirano a combinare diversi segnali per usare un singolo canale, ma con uno scopo diverso. La diffusione dello spettro viene usata per reti senza fili, nelle quali è particolarmente importante evitare intercettazioni o interferenze.
+    
+    Ciò che accade nella diffusione dello spettro è l'espansione della banda del segnale originale, che risulta in un segnale con larghezza di banda molto maggiore, e che sembra casuale pur non essendolo effettivamente.
+    
+    \subsection{Diffusione dello spettro tramite sequenza diretta}
+        La tecnica di diffusione DSSS (Direct Sequence Spread Spectrum) codifica tramite uno specifico codice di diffusione ogni bit tramite una parola codice di $n$ bit. Se non si conosce il codice di diffusione è difficile decodificare il segnale.

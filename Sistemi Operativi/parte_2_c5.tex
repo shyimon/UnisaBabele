@@ -1,0 +1,230 @@
+In un sistema operativo abbiamo bisogno di schedulare i processi per aumentare l'efficienza; sia esso single o multi core, eseguire i processi in maniera sequenziale non sfrutta i molti istanti in cui quel processo attende input, output o eventi, lasciando a tutti gli effetti il sistema in \textit{idle}.
+
+\section{Concetti fondamentali}
+    Come detto prima, lo scopo di un calcolatore è quello di minimizzare il tempo di idle, quindi è conveniente schedulare i processi in maniera che i tempi di attesa di uno vengano riempiti da tempi di elaborazione di un altro. Ogni risorsa di un elaboratore viene sottoposta a scheduling, e ovviamente la CPU è una delle risorse principali.
+    
+    \subsection{Ciclicità delle fasi di elaborazione e di I/O}
+        Un concetto importante e che potrebbe guidare la scelta di un adeguato algoritmo di scheduling della CPU è capire come i processi alternano due fasi: una fase di \textbf{elaborazione}, in cui il lavoro è a carico della CPU, e la fase di \textbf{I/O}, in cui sono invece i vari dispositivi di input e output a fare il grosso del lavoro.
+        
+        È naturale pensare che i processi si comportino così: un processo ottiene dei dati (I/O) che procede a elaborare (CPU), per poi comunicare al sistema o a un altro processo il risultato di questa elaborazione (I/O) e ricominciare così il ciclo.
+        
+        Chiamiamo queste fasi del ciclo \textit{I/O burst} e \textit{CPU burst}, e indubbiamente alcuni tipi di processi possono avere un bilanciamento di queste due fasi diverso, e ciò può certamente influenzare la scelta o la progettazione di un algoritmo di scheduling.
+        
+    \subsection{Scheduler della CPU}
+        Quando la CPU incontra un momento di inattività, viene scelto un elemento dalla \textit{ready queue} per essere eseguito in modo da non lasciare il sistema in uno stato di idle.
+        
+        Questa scelta viene fatta dallo \textbf{scheduler a breve termine}, o \textbf{scheduler della CPU}. La ready queue non è necessariamente una coda FIFO, ma potrebbe essere una qualsiasi struttura: coda FIFO, a priorità, albero, lista concatenata non ordinata, eccetera.
+        
+        Concettualmente, tutti i processi della ready queue sono posti in lista d'attesa per accedere alla CPU. Generalmente gli elementi delle code sono i PCB dei processi.
+        
+    \subsection{Scheduling con e senza prelazione}
+        Le decisioni riguardanti lo scheduling della CPU vengono prese nelle seguenti quattro circostanze:
+        \begin{enumerate}
+            \item Un processo passa dallo stato di esecuzione allo stato di \textit{wait}.
+            \item Un processo passa dallo stato di esecuzione allo stato di \textit{ready}.
+            \item Un processo passa dallo stato di attesa allo stato di \textit{ready}.
+            \item Un processo viene terminato.
+        \end{enumerate}
+        
+        I casi 1 e 4 non danno alternative in termini di scheduling: si deve scegliere un nuovo processo dalla ready queue. Una scelta invece si può fare nei casi 2 e 3.
+        
+        Quando lo scheduling interviene solo nelle condizioni 1 e 4, si dice \textbf{senza prelazione} (\textit{nonpreemptive}) o \textbf{cooperativo} (\textit{cooperative}). Altrimenti, lo schema di scheduling è \textbf{con prelazione} (\textit{preemptive}).
+        
+        Nel caso dello scheduling senza prelazione, quando si assegna la CPU a un processo, questo ne rimane in possesso fino al suo rilascio, dato dalla terminazione o dal suo passaggio allo stato di attesa. Praticamente tutti i sistemi operativi moderni usano invece lo scheduling con prelazione.
+        
+        Un lato negativo dello scheduling con prelazione è che può portare a \textit{race condition} nel caso di dati condivisi fra i processi, si consideri per esempio il caso in cui un processo venga messo in wait e un secondo processo tenti di accedere a dati lasciati dal processo precedente in uno stato incoerente.
+        
+    \subsection{Dispatcher}
+        Questo è un altro elemento coinvolto nelal funzione di scheduling, ed in particolare passa effettivamente il controllo della CPU al processo scelto dallo scheduler. Questa funzione comprende:
+        \begin{itemize}
+            \item Il context switch da un processo a un altro;
+            \item Il passaggio alla modalità utente;
+            \item Il salto alla giusta posizione del programma utente per riavviarne l'esecuzione.
+        \end{itemize}
+        
+        Poiché si attiva a ogni cambio di contesto, il \textbf{dispatcher} dovrebbe essere più veloce possibile. Il tempo necessario per fermare un processo ed avviare l'esecuzione di un altro è noto come \textbf{latenza di dispatch}.
+        
+        Un'altra distinzione che possiamo fare è quella fra cambi di contesto volontari e non volontari. Un cambio di contesto \textbf{volontario} avviene quando un processo cede il controllo della CPU dopo aver richiesto una risorsa al momento non disponibile, per esempio quando è bloccato in una richiesta I/O. Un cambio di contesto \textbf{non volontario} si verifica quando la CPU viene sottratta a un processo, per esempio quando il suo tempo è scaduto o quando è stata eseguita la prelazione a favore di un processo a priorità più alta.
+        
+\section{Criteri di scheduling}
+    I diversi algoritmi di scheduling possono favorire un certo comportamento o una certa classe di processi. Per il confronto fra algoritmi ci sono una serie di criteri da prendere in considerazione, fra cui:
+    \begin{itemize}
+        \item \textbf{Utilizzo della CPU:} La CPU deve essere più attiva possibile. In teoria può andare dallo 0 al 100 per cento. In un sistema reale dovrebbe dal 40 per cento al 90 per cento.
+        
+        \item \textbf{Throughput:} La CPU è attiva quando si svolge del lavoro. Una misura del lavoro può essere data dalla quantità di processi completati nell'unità di tempo. Tale misura è detta \textbf{produttività}, o \textit{throughput}. Per processi di lunga durata il suo valore può essere anche di un processo all'ora, mentre per processi di breve durata anche di 10 processi al secondo.
+        
+        \item \textbf{Tempo di completamento:} Il criterio più importante dal punto di vista del processo stesso è il tempo di completamento dello stesso. L'intervallo che intercorre tra la sottomissione del processo e il completamento dell'esecuzione è detto \textbf{tempo di completamento} o \textit{turnaround time}, ed è la somma dei tempi passati nell'attesa dell'ingresso in memoria, nella ready queue, durante l'esecuzione della CPU e nelle operazioni di I/O.
+        
+        \item \textbf{Tempo di attesa.} L'algoritmo di scheduling non influisce sul tempo necessario per completare un processo, ma solo sul tempo che lo stesso passa in attesa nella ready queue. Il \textbf{tempo d'attesa} è la somma di tutte queste attese.
+        
+        \item \textbf{Tempo di risposta.} In un sistema interattivo il tempo di completamento non può essere il miglior criterio di valutazione. Una misura di confronto più adatta è il tempo che intercorre fra una richiesta e la relativa risposta prodotta, ed è chiamata \textbf{tempo di risposta}, ed è data dal tempo necessario per iniziare la risposta ma non dal tempo necessario per completare l'output.
+    \end{itemize}
+    
+    È auspicabile massimizzare l'utilizzo e la produttività della CPU e minimizzare il tempo di completamento, attesa e risposta. Spesso si punta a ottimizzare i valori medi, ma in alcuni casi si potrebbe puntare a ottimizzare quelli medi o massimi, per esempio per assicurare che tutti gli utenti ottengano un buon servizio potremmo voler ridurre il massimo tempo di risposta.
+    
+\section{Algoritmi di scheduling}
+    Lo scheduling della CPU si occupa di decidere quale dei processi della ready queue andrà assegnato al core della CPU. Ci sono diversi algoritmi per ottenere ciò in maniera efficiente. Nonostante la maggior parte dei sistemi moderni dispongano di core multipli, andremo a vederne qualcuno nel contesto di una singola CPU con un singolo core disponibile.
+    
+    \subsection{Scheduling in ordine d'arrivo}
+        Il più semplice algoritmo di scheduling è lo \textbf{scheduling in ordine d'arrivo} (\textit{scheduling first-come, first-served}, o FCFS). Con questo schema la CPU si assegna sul processo che la richiede per primo, e si basa su una semplice coda FIFO.
+        
+        Il problema con questo algoritmo è che il tempo medio d'attesa è piuttosto alto. Si considerino i seguenti processi con la durata delle operazioni espressa in millisecondi:
+        
+        \begin{table*}[h]
+            \centering
+            \begin{tabular}{c c}
+                \textbf{Processo} & \textbf{Durata della sequenza} \\ \hline
+                $P_1$ & 24\\
+                $P_2$ & 3\\
+                $P_3$ & 3\\
+                \hline
+            \end{tabular}
+            \label{tab:my_label}
+        \end{table*}
+        
+        Eseguendo i processi in ordine abbiamo un tempo di attesa di $0$ per $P_1$, di $24$ per $P_2$ e di $27$ per $P_3$, e quindi un tempo di attesa medio di 17 millisecondi. Se i processi arrivassero in ordine $P_2, P_3, P_1$, il tempo di attesa medio sarebbe di appena 3 millisecondi.
+        
+        Un modello del genere potrebbe anche causare un \textbf{effetto convoglio}, in cui molti processi dal breve tempo di elaborazione attendono che un processo pesante termini, il che può causare un utilizzo diminuito sia della CPU che dei dispositivi.
+        
+        Inoltre questo algoritmo è senza prelazione, e abbiamo visto precedentemente perché ciò non è ideale. In casi estremi un singolo processo estremamente pesante potrebbe occupare la CPU per un tempo lunghissimo, privando il resto del sistema delle risorse.
+        
+    \subsection{Scheduling shortest-job-first}
+        Un criterio di scheduling diverso è lo \textbf{scheduling per brevità} (\textbf{shortest-job-first}, o \textit{SJF}), che determina per ogni processo la lunghezza del prossimo CPU burst ed esegue quello con il valore più piccolo al fine di diminuire il tempo di attesa medio. Come detto, non viene davvero presa in considerazione la lunghezza dell'intero job ma solo del prossimo CPU burst, e infatti il nome è traviante ma è comunemente usato.
+        
+        Si può dimostrare che l'algoritmo SJF è \textit{ottimale}, ossia minimizza il tempo di attesa medio. Nonostante ciò, non è realizzabile in pratica in quanto non si può conoscere in anticipo la durata di un CPU burst. Possiamo come alternativa cercare di predirla in base a euristiche, come per esempio il fatto che per una stessa operazione le durate dei suoi CPU burst saranno simili.
+        
+        La lunghezza del prossimo CPU burst si definisce solitamente usando la \textbf{media esponenziale} delle lunghezze misurate dei precedenti CPU burst. Essa si calcola con la seguente formula: siano $t_n$ la lunghezza dell'$n$-esimo CPU burst della CPU e $\tau_{n+1}$ il valore previsto per il successivo burst. Allora, dato $\alpha \colon 0 \leq \alpha \leq 1$, si definisce
+        \begin{equation*}
+            \tau_{n+1} = \alpha t_n + (1 - \alpha)\tau_n
+        \end{equation*}
+        Il valore $t_n$ contiene le informazioni più recenti; $\tau_n$ registra la storia passata. Il parametro $\alpha$ controlla il peso relativo sulla predizione della storia decente e di quella passata. Il $\tau_0$ iniziale si può definire come un valore assoluto o una media di sistema.
+        
+        L'algoritmo SJF può essere sia con prelazione che senza prelazione. La scelta si presenta nel momento in cui un processo richiede la CPU mentre un altro processo è ancora in esecuzione. Il nuovo processo potrebbe richiedere un CPU burst più breve di quello rimanente al processo in esecuzione, e un algoritmo SJF con prelazione sostituisce il processo attualmente in esecuzione. Lo schema SJF con prelazione è talvolta chiamato \textit{shortest-remaining-time-first}.
+        
+    \subsection{Scheduling circolare (\textit{round-robin})}
+        L'\textbf{algoritmo di scheduling circolare} (\textit{round-robin}, RR) è simile allo scheduling FCFS, ma aggiunge la capacità di prelazione in modo che il sistema possa commutare fra i vari processi. Viene fissato un \textbf{quanto} o \textbf{porzione} di tempo, che di solito è compreso fra i 10 e i 100 millisecondi, e la ready queue viene trattata come una coda circolare. Lo scheduler scorre la ready queue e assegna a ogni processo al massimo un quanto di tempo.
+        
+        La ready queue è implementata come una coda FIFO e si comporta in questo modo: i nuovi processi vengono aggiunti alla fine della coda, mentre un processo in esecuzione può avere due destini: o conclude la sua esecuzione prima dello scadere del quanto di tempo, le risorse vengono rilasciate e lo scheduler passa al processo successivo della coda, oppure non riesce a terminare la sua esecuzione, viene messo alla fine della ready queue e viene dato un quanto di tempo al processo successivo.
+        
+        Il tempo di attesa medio per questo algoritmo di scheduling è abbastanza alto.
+        
+        Le prestazioni di questo algoritmo dipendono dalla dimensione del quanto di tempo. Nel caso limite di un quanto di tempo molto lungo, l'algoritmo si riduce al caso di un FCFS. Nel caso invece di un quanto di tempo molto breve, la maggior parte delle risorse potrebbero essere impiegate per eseguire i context switch. Ecco perché di solito si sceglie un quanto di tempo ampio rispetto alla durata di un context switch.
+        
+        Anche il \textbf{tempo di completamento} (\textit{turnaround time}) è influenzato dalla dimensione del quanto di tempo.
+        
+        Il problema in questo caso è quindi stabilire un quanto di tempo adeguato, in quanto esso non deve essere troppo piccolo né troppo grande.
+        
+    \subsection{Scheduling con priorità}
+        L'algoritmo SJF è un caso particolare dell'algoritmo di scheduling con priorità, in cui si assegna a ogni processo una priorità, e nel caso di priorità uguale si usa un criterio FCFS.
+        
+        Non c'è un consenso sull'utilizzo di numeri bassi per indicare priorità basse o alte, e questo può generare confusione.
+        
+        Le priorità si possono definire sia \textit{internamente} che \textit{esternamente}. Nel primo caso il criterio è basato su quantità misurabili dal sistema operativo, come stima del tempo per la prossima CPU burst, risorse utilizzate, requisiti di memoria, etc. Le priorità definite esternamente si avvalgono di parametri esterni al sistema operativo, come l'importanza del processo, l'utente che lo richiede, e altri fattori spesso di ordine politico.
+        
+        Questo algoritmo può essere sia con che senza prelazione. Nel caso di un'implementazione con prelazione, semplicemente all'arrivo di un nuovo processo la sua priorità viene confrontata con quella del processo attualmente in esecuzione ed eventualmente viene eseguita una sostituzione.
+        
+        Un problema legato a questo algoritmo può essere l'\textbf{attesa indefinita} (\textit{starvation}). Un processo a priorità bassa potrebbe ritrovarsi in attesa indefinita della CPU, costantemente surclassato da processi a priorità alta. Solitamente i due destini di un tale processo sono o di essere eseguito molto tempo dopo la sua richiesta, o di essere perduto in seguito a un eventuale crash del sistema.
+        
+        Una possibile soluzione sta nell'\textbf{invecchiamento} (\textit{aging}); si tratta di una tecnica che semplicemente aumenta la priorità di un processo man mano che esso invecchia.
+        
+        Un'altra opzione sta nel combinare round-robin e scheduling a priorità in maniera tale che il sistema esegua i processi allo stesso livello di priorità con un metodo round-robin.
+        
+    \subsection{Scheduling a code multilivello}
+        Negli algoritmi di scheduling visti precedentemente, c'è necessità di cercare il processo con priorità più alta all'interno di una coda, o di ordinare i processi. Questo può essere costoso e spesso, nella pratica, è più utile disporre di diverse code, una per priorità, e lasciare che lo scheduling si occupi di prelevare processi dalla prima coda non vuota a priorità più alta.
+        
+        Questo processo, noto come \textbf{scheduling a code multilivello}, funziona bene anche quando lo scheduling a priorità è combinato con quello RR. Nella forma generale di questo approccio viene assegnata priorità statica a ciascun processo, il quale rimane nella stessa coda durante tutto il suo tempo di esecuzione.
+        
+        Possiamo anche definire le code in base a categorie più complesse della semplice priorità. Possiamo per esempio definire una coda per i processi in tempo reale, una per quelli di sistema, una per quelli batch etc. Queste code oltre ad essere collegate fra loro da valori di priorità, possono anche implementare diversi algoritmi di scheduling, in base alla natura dei processi che contengono. Queste code possono avere priorità assoluta fra loro, con o senza prelazione, o possiamo assegnare a ognuna un quanto di tempo diverso per eseguire i suoi processi. È dunque un meta-sistema di organizzazione molto flessibile, che può contenere al suo interno contemporaneamente più modelli e più algoritmi di scheduling.
+        
+    \subsection{Scheduling a code multilivello con retroazione}
+        Nell'algoritmo visto precedentemente, i processi non avevano la possibilità di cambiare coda. Un processo inserito in una coda batch sarebbe rimasto per sempre in quella coda. Questo metodo è rigido ma ha il vantaggio di avere un basso carico di scheduling.
+        
+        Lo \textbf{scheduling a code multilivello con retroazione} (\textit{multilevel feedback queue scheduling}), invece, permette ai processi di spostarsi fra le code. L'idea sta nel separare i processi in base alle caratteristiche dei loro CPU burst. Se un processo usa la CPU per troppo tempo, viene spostato in una coda a priorità più bassa. In questo modo i processi con prevalenza di I/O e quelli interattivi avranno priorità più alta. Inoltre si può applicare un metodo di \textit{aging} per far passare in code con priorità più alta i processi che hanno aspettato troppo in code con priorità bassa.
+        
+        Solitamente uno scheduler di questo tipo è caratterizzato da: numero di code, algoritmo di scheduling per ciascuna coda, metodo usato per determinare quando spostare un processo in una coda a priorità maggiore o minore e metodo usato per determinare in quale coda si deve mettere un processo quando richiede un servizio.
+        
+        Questo costituisce il più generale criterio di scheduling della CPU, ma anche il più complesso.
+        
+\section{Scheduling dei thread}
+    Sui sistemi che supportano i thread, lo scheduler non effettua le sue operazioni sui processi, ma sui thread a livello kernel.
+    
+    \subsection{Ambito della contesa}
+        Una distinzione fra thread a \textit{livello utente} e a \textit{livello kernel} riguarda il modo in cui vengono schedulati.
+        
+        Nei sistemi che impiegano il modello molti a uno o molti a molti, la libreria dei thread pianifica l'esecuzione dei thread a livello utente tramite un LWP libero; si parla allora di \textbf{ambito della contesa rispetto al processo} (\textit{process-contention scope}, PCS), perché la contesa per aggiudicarsi la CPU ha luogo fra thread dello stesso processo. Quando diciamo che la libreria dei thread pianifica l'esecuzione dei thread associandoli ai LWP liberi, non si intende che il thread sia in esecuzione su una CPU; quello avviene solo quando il sistema operativo pianifica l'esecuzione di thread kernel su un processore fisico.
+        
+        Per determinare quale thread a livello kernel va eseguito, il kernel esamina i thread di tutto il sistema; si parla allora di \textbf{ambito della contesa allargato al sistema} (\textit{system-contention scope}, SCS).
+        
+\section{Scheduling per sistemi multiprocessore}
+    Con l'aumentare dei core di elaborazione, c'è la possibilità di dividere il carico di lavoro (\textit{load sharing}), ma trattare il problema dello scheduling diventa proporzionalmente più complessa, e una soluzione "migliore" non esiste.
+    
+    Prima il termine \textbf{multiprocessore} faceva riferimento a un elaboratore con più CPU single core, ma con il tempo si è espanso per comprendere architetture:
+    \begin{itemize}
+        \item CPU multicore.
+        \item Core multithread.
+        \item Sistemi NUMA.
+        \item Sistemi multiprocessore eterogenei.
+    \end{itemize}
+    
+    Analizzeremo alcuni problemi attinenti lo scheduling nel contesto delle diverse architetture. Possiamo già intuire che nei primi tre casi i processori sono omogenei fra loro, e quindi è possibile scegliere un qualsiasi processore per l'elaborazione, mentre nell'ultimo caso i processori non hanno le stesse capacità.
+    
+    \subsection{Approcci allo scheduling per multiprocessori}
+        Una prima strategia di scheduling della CPU affida tutte le decisioni, l'elaborazione dell'I/O e altre attività del sistema a un solo processore, il cosiddetto \textit{master server}, mentre gli altri processori eseguono solo il codice utente. Si tratta della \textbf{multielaborazione asimmetrica}. Lo svantaggio di questo metodo è che il master server costituisce un potenziale collo di bottiglia.
+        
+        L'approccio standard per supportare i multiprocessori è la \textbf{multielaborazione simmetrica} (\textbf{SMP}), in cui ogni processore è in grado di autogestirsi. Questo offre due possibilità per organizzare i thread da selezionare:
+        \begin{itemize}
+            \item Tutti i thread possono trovarsi in una ready queue comune.
+            \item Ogni processore può avere una propria coda privata di thread.
+        \end{itemize}
+        
+        Nel primo caso c'è il rischio di avere race condition e quindi bisogna assicurarsi che due processori non scelgano lo stesso thread. Per questo motivo, all'interno del contesto SMP, l'approccio a code private per ogni processore è quello più comune. Anche in questo caso abbiamo dei problemi, principalmente relativi al carico di lavoro, ma per attenuare questo problema ci sono algoritmi di bilanciamento.
+        
+    \subsection{Processori multicore}
+        Tradizionalmente i sistemi SMP hanno reso possibile la concorrenza fra thread con l'aggiunta di più processori fisici. Tuttavia, la tendenza si è spostata sull'aggiunta di multipli core all'interno dello stesso processore, che hanno il proprio stato e appaiono al sistema come processori fisici separati.
+        
+        Tuttavia i processori multicore possono complicare i problemi relativi allo scheduling. Un problema potrebbe relativo alla memoria: quando un processore accede alla memoria, una quantità significativa di tempo potrebbe essere trascorsa in attesa di disponibilità dei dati, per esempio a causa della mancanza di questi nella cache. Questo fenomeno è conosciuto come \textbf{stallo della memoria} e può portare a notevoli perdite di prestazioni. Per risolvere questo problema, i sistemi hardware moderni hanno permesso a più thread hardware di accedere allo stesso core, in maniera tale da sfruttare tramite altre elaborazioni i momenti di stallo della memoria. Questa tecnica è nota come \textbf{chip multithreading} (CMT). Dal punto di vista del sistema operativo ogni thread hardware è una diversa CPU logica. I processori Intel chiamano questa tecnica \textbf{hyper-threading}, o \textbf{multithreading simultaneo}.
+        
+        In generale ci sono due modi per rendere un core multithread: tramite il \textbf{multithreading a grana grossa} (\textit{coarse-grained}) e il \textbf{multithreading a grana fine} (\textit{fine-grained}). Nella versione coarse-grained, un thread resta in esecuzione su un core fino al verificarsi di un evento a lunga latenza, come uno stallo della memoria. Tuttavia, il costo per il cambio di thread è alto, in quanto bisogna ripulire la pipeline delle istruzioni prima che il nuovo thread possa essere eseguito, e una volta che è in esecuzione inizia a riempire la pipeline con le sue istruzioni.
+        
+        Il multithreading fine (anche detto \textit{interleaved multithreading}) passa da un thread all'altro con una granularità molto più fine, solitamente alla fine di ogni cicli di istruzioni. Tuttavia i sistemi a multithreading fine hanno una logica dedicata al cambio di thread, rendendolo non così dispendioso.
+        
+        È bene notare che le risorse di un core fisico devono essere condivise dai suoi thread e quindi un core può eseguire solo un thread alla volta. Ne deriva che lo scheduling avviene a più livelli: su un primo livello abbiamo la scelta da parte del sistema operativo del thread software da eseguire, mentre su un secondo livello abbiamo la scelta del core di quale thread hardware scegliere.
+        
+        Non necessariamente questi due livelli devono essere mutualmente esclusivi; il sistema operativo potrebbe essere a conoscenza della presenza di multipli core in una CPU, e prendere decisioni che ne favoriscano l'efficace utilizzo.
+        
+    \subsection{Bilanciamento del carico}
+        Sui sistemi SMP è importante che ogni unità elaborativa esegua una quantità simile di lavoro. In caso contrario potremmo avere situazioni in cui una CPU resta inattiva, mentre un'altra ha una ready queue molto grande. Questo \textbf{bilanciamento del carico} tenta di ridurre questo problema. È inoltre bene notare che è necessario per sistemi in cui i processori hanno code di attesa private, in quanto nel caso di una coda pubblica, un processore inattivo andrebbe immediatamente a prendere un elemento dalla coda.
+            
+        Il bilanciamento del carico può seguire due approcci: la \textbf{migrazione push} e la \textbf{migrazione pull}. La prima prevede che un processo dedicato controlli periodicamente tutti i processori e si occupi di portare processi da processori saturi ad altri inattivi o poco attivi. La seconda invece si ha quando un processore inattivo prende un processo in attesa a un processore sovraccarico. I due metodi non sono necessariamente mutualmente esclusivi.
+            
+        Il significato di "carico bilanciato" può variare. Potrebbe significare uguale numero di thread per tutte le code, equa distribuzione di priorità, eccetera.
+            
+    \subsection{Predilezione per il processore}
+        Si consideri cosa accade alla cache dopo che è stata utilizzata da un processo: i dati trattati dal processo permangono nella cache, e dunque quel processo userà spesso la memoria cache nei suoi successivi accessi (\textbf{warm cache}).
+            
+        Ovviamente se il processo si sposta su un altro processore, i dati lasciati nella cache precedente devono essere invalidati, mentre la cache nuova deve essere riempita. A causa del costo di una tale operazione, molti processori SMP tentano di impedire il passaggio di un processo da un processore a un altro. Si parla di \textbf{predilezione per il processore} (\textit{processor affinity}), intendendo con ciò che un processo ha una predilezione per il processore su cui è in esecuzione.
+            
+        Anche in questo caso l'utilizzo di ready queue pubbliche o private influisce sul risultato. Ovviamente con una ready queue privata abbiamo la predilezione per il processore gratuitamente, ed è quindi preferibile.
+            
+        La predilezione per il processore può assumere varie forme. Con la \textbf{predilezione debole} (\textit{soft affinity}) il sistema operativo tenta di tenere un processo sullo stesso processore ma non garantisce che sarà così. Al contrario, con la \textbf{predilezione forte} (\textit{hard affinity}) il processo è costretto su un singolo processore o sottoinsieme di processori. La maggior parte dei sistemi operativi supportano entrambe queste modalità.
+            
+        È interessante notare che la predilezione del processore va in diretto contrasto con il bilanciamento del carico. Infatti quest'ultimo prevede la migrazione di processi quando necessario, ma ciò implica il "raffreddamento" della cache.
+            
+    \subsection{Multiprocessing eterogeneo}
+        Negli esempi visti fino ad ora tutti i processori sono uguali in termini di funzionalità. Andando a guardare un'altra situazione, sappiamo che i sistemi mobili supportano architetture in cui i vari core eseguono gli stessi set di istruzioni, ma frequenze di clock e gestione energetica diversi, che possono variare fino ad arrivare a uno stato di idle.
+            
+        Chiamiamo questi sistemi \textbf{a multielaborazione eterogenea}, o sistemi \textbf{HMP} (\textit{heterogeneous multiprocessing}). Lo scopo di questo tipo di elaborazione è la gestione migliore del consumo di energia, assegnando un task a un determinato core in base alle sue richieste, e da ciò intuiamo il perché dell'utilizzo su sistemi mobili.
+            
+        Nei processori ARM questa tipologia di architettura è conosciuta come \textbf{big.LITTLE} e consiste nell'avere grandi core con elevate prestazioni e piccoli core con bassi consumi energetici.
+            
+        Questo tipo di architettura è vantaggiosa perché ovviamente uno scheduler può assegnare a un core piccolo processi come quelli in background, che richiedono poche risorse ma sono in esecuzione per molto tempo, e viceversa a core grandi processi brevi ma dispendiosi. Inoltre possiamo pensare di implementare una modalità risparmio energetico disattivando parte dei o tutti i core grandi.
+            
+\section{Valutazione degli algoritmi}
+    Un problema non banale è la scelta di un algoritmo di scheduling per la CPU. Per confrontare i vari algoritmi fra loro dobbiamo definire dei criteri di valutazione, che in passato abbiamo ricondotto a utilizzo medio della CPU, durata media di un processo, permanenza media di un processo nella coda d'attesa, etc. Possiamo inserire criteri in base ai nostri bisogni, ma i metodi di valutazione possono variare. Ne vedremo uno di seguito.
+    
+    \subsection{Modellazione deterministica}
+        Fra i metodi di valutazione abbiamo quelli che rientrano nella classe della \textbf{valutazione analitica}. Questa, partendo dall'algoritmo dato e dal carico di lavoro, tramite una formula fornisce una valutazione numerica per valutare l'efficienza di quell'algoritmo su quel carico di lavoro.
+        
+        La \textbf{modellazione deterministica} è un tipo di valutazione analitica che considera un carico di lavoro predeterminato e definisce le prestazioni di ciascun algoritmo su quel carico di lavoro.
+        
+        Questo tipo di modellazione è facile da realizzare e fornisce un risultato numerico preciso che permette di confrontare i vari algoritmi. Tuttavia, un risultato è rigidamente legato a un determinato input, e infatti la modellazione deterministica è usata principalmente per descrivere il funzionamento di algoritmi e fare esempi. Nel caso di ripetizione dello stesso esempio o valutazione di insiemi di esempi, può mostrare tendenze ed essere analizzato in un contesto statistico.

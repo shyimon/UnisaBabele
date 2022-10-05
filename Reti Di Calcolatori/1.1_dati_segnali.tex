@@ -1,0 +1,196 @@
+\section{Dati e segnali analogici e digitali}
+    Per essere trasmessi, i dati devono essere trasformati in segnali elettromagnetici.
+    
+    Sia i dati che i segnali che li rappresentano possono essere sia \textbf{analogici} che \textbf{digitali}.
+    
+    \paragraph{Dati analogici e digitali}
+        I \textbf{dati analogici} sono informazione rappresentata in maniera continua; i \textbf{dati digitali} sono informazione rappresentata in maniera discreta.
+        
+    \paragraph{Segnali analogici e digitali}
+        Come i dati che rappresentano, anche i segnali possono essere sia analogici che digitali. I segnali \textbf{analogici} possono assumere un infinito numero di valori di intensità, mentre quelli \textbf{digitali} ne possono assumere un numero limitato, che spesso è 1 o 0.
+        
+    \paragraph{Segnali periodici e aperiodici}
+        Sia i segnali analogici che quelli digitali possono avere due forme: periodici e aperiodici. Un \textbf{segnale periodico} si ripete nel tempo a intervalli regolari. La forma che viene ripetuta viene chiamata \textit{ciclo}, mentre la durata di un singolo ciclo viene chiamata \textit{periodo}.
+        
+        Un \textbf{segnale aperiodico} invece non si ripete con regolarità nel tempo.
+        
+\section{Segnali analogici periodici}
+    Questo tipo di segnali, insieme a quelli digitali aperiodici, sono molto usati nelle reti di calcolatori.
+    
+    Essi possono essere:
+    \begin{itemize}
+        \item \textbf{Semplici} (onde sinusoidali), se non possono essere decomposti in altri segnali.
+        \item \textbf{Composti}, se invece possono essere decomposti ulteriormente in onde sinusoidali.
+    \end{itemize}
+    
+    \subsection{Onde sinusoidali}
+        È la più importante forma di segnale analogico periodico. Può essere rappresentata da tre parametri: ampiezza massima (o di picco), frequenza e fase. Questi tre parametri sono sufficienti per descrivere in modo completo l'onda.
+        
+        \subsubsection{Ampiezza massima}
+            L'intensità massima, in valore assoluto, che il segnale raggiunge. È proporzionale all'energia trasportata dal segnale.
+            
+        \subsubsection{Periodo e frequenza}
+            Il \textbf{periodo} è il tempo necessario, misurato in secondi, che il segnale impiega a completare un ciclo. La \textbf{frequenza} è invece il numero di cicli completati in un secondo. Si noti che essendo l'una l'inverso dell'altra, queste due misure descrivono la stessa caratteristiche di un segnale.
+            \begin{center}
+                $f = \frac{1}{T}$ \hspace{5mm} e \hspace{5mm} $T = \frac{1}{f}$
+            \end{center}
+            
+            Mentre il periodo viene espresso in secondi, la frequenza viene spesso espressa in \textbf{hertz} (Hz), e rappresenta il numero di cicli per secondo.
+            
+    \subsection{Frequenza e velocità}
+        Un altro modo di guardare la frequenza è misurare la velocità del segnale. Siccome un segnale della frequenza di 50Hz si ripete la metà delle volte di un segnale di frequenza 100Hz, possiamo dire che il primo è più "lento".
+            
+        La \textbf{velocità} è in pratica la velocità con cui un segnale cambia rispetto al tempo. Cambiamenti veloci implicano una frequenza alta.
+            
+        Consideriamo ora le situazioni \textbf{estreme}:
+        \begin{itemize}
+            \item Se un segnale \textbf{non cambia}, ossia rimane costante, la frequenza è 0. In questo caso il segnale non completa mai nemmeno un ciclo.
+                
+            \item Se invece un segnale cambia valore \textbf{istantaneamente}, la sua frequenza è infinita, in quanto il suo periodo è 0.
+        \end{itemize}
+            
+        \subsubsection{Fase}
+            Essa descrive la posizione dell'onda rispetto all'asse del tempo, e indica la posizione iniziale del primo ciclo. Viene definita in gradi o radianti.
+            
+    \subsection{Lunghezza d'onda}
+        La lunghezza d'onda è un'altra caratteristica di un segnale, e mette in relazione il periodo, o la frequenza, con la velocità di propagazione del mezzo trasmissivo. Denotando con $\lambda$ la lunghezza d'onda e con $c$ la velocità di propagazione del segnale, si ha
+        \begin{center}
+            $\lambda = c \cdot T = \frac{c}{f}$
+        \end{center}
+        
+        La lunghezza d'onda è spesso misurata in micrometri.
+        
+    \subsection{Segnali composti}
+        Ci interessano le onde sinusoidali semplici perché sono ottime per trasportare segnali semplici, come l'energia elettrica o segnali d'allarme.
+        
+        Un'altra applicazione molto importante delle onde sinusoidali è comporle in segnali più complessi: agli inizi del '900, Fourier ha mostrato che un qualsiasi segnale composto è in realtà la somma di onde sinusoidali con varie frequenze, fasi e ampiezze.
+        
+        I segnali composti possono essere periodici o aperiodici; i componenti di un segnale composto \textbf{periodico} sono onde sinusoidali con frequenze discrete, mentre i componenti di un segnale composto \textbf{aperiodico} sono onde sinusoidali con frequenze continue.
+        
+    \subsection{Spettro e larghezza di banda}
+        Lo spettro di un segnale è l'insieme delle frequenze che esso contiene. L'intervallo delle frequenze contenute in un segnale è detto \textbf{larghezza di banda}, ed è la misura fra la sequenza più alta e quella più bassa.
+        
+\section{Segnali digitali}
+    Oltre a codificare le informazioni con un segnale analogico, possiamo anche usare un segnale digitale, per esempio associando il valore 1 a un voltaggio positivo e il valore 0 a un voltaggio nullo, per rappresentare i bit.
+    
+    Un segnale digitale può avere anche più di due livelli, e in generale ogni livello può codificare $\log_2L$ bit.
+    
+    \paragraph{Velocità}
+        Solitamente si misura in bit per secondo, o \textit{bps}. È inversamente proporzionale alla durata del segnale che rappresenta un singolo bit.
+        
+    \subsection{Lunghezza dei bit}
+        È l'analogo della lunghezza d'onda discusso in precedenza. Mentre la lunghezza d'onda può essere vista come la distanza che un ciclo occupa sul mezzo di trasmissione, la \textbf{lunghezza dei bit} è la distanza che un bit occupa sul mezzo trasmissivo.
+        
+    \subsection{Segnali digitali e segnali analogici composti}
+        L'analisi di Fourier ci dice che un segnale digitale è un segnale analogico composto per il quale la larghezza di banda è infinita, in quanto i segmenti orizzontali denotano nessun cambiamento, mentre quelli verticali cambiamento istantaneo.
+        
+        Il segnale può essere scomposto quindi con l'analisi di Fourier, in frequenze discrete per un segnale periodico e in frequenze continue per un segnale aperiodico.
+        
+    \subsection{Trasmissione di segnali digitali}
+        Ci occupiamo ora del problema della trasmissione di segnali digitali aperiodici. Essa può avvenire in due modi: trasmissione del segnale di base oppure trasmissione con modulazione del segnale.
+        
+        \subsubsection{Trasmissione del segnale di base}
+            Questo metodo prevede di trasmettere il segnale senza modificarlo in un segnale analogico.
+            
+            Questo richiede dei canali \textbf{passa-basso}, ossia con una larghezza di banda che inizia da zero. Questo è possibile per un mezzo trasmissivo che collega direttamente due nodi, come un cavo che collega due PC, o per più PC un bus, con l'accortezza di farlo usare da un solo segnale alla volta.
+            
+        \subsubsection{Trasmissione con modulazione del segnale}
+            Modulare un segnale digitale significa trasformarlo in un segnale analogico per poi essere trasmesso. Questo ci apre alla possibilità di usare dei canali \textbf{passa-banda}, ossia dei canali la cui larghezza di banda non inizia da 0.
+            
+\section{Deterioramento del segnale}
+    C'è da considerare che il mezzo trasmissivo attraverso il quale i segnali viaggiano ne causa un deterioramento; i segnali in punto d'arrivo non sono identici a quelli generati dal mittente. Ci sono diversi tipi di deterioramento, e in particolare le cause principali sono l'attenuazione, la distorsione e il rumore.
+    
+    \subsection{Attenuazione}
+        Questa è una perdita di energia, che è stata consumata per superare la resistenza del mezzo trasmissivo stesso. Per ovviare a questo problema vengono usati degli amplificatori che ripristinano il segnale.
+        
+        La variazione del segnale viene spesso misurata in \textbf{decibel} (dB).
+        
+    \subsection{Distorsione}
+        La \textbf{distorsione} è un cambiamento della forma del segnale, ed è tipica dei segnali composti da varie frequenze. Siccome ogni segnale ha un suo ritardo nel mezzo trasmissivo, la differenza fra questi ritardi può creare differenze di fase nel segnale composto, che risulta in distorsione.
+        
+    \subsection{Rumore}
+        Ci sono diversi tipi di rumore, con diverse cause e origini. Il rumore si traduce in segnale addizionale, non prodotto o inteso dal mittente, che si aggiunge al segnale inteso per la trasmissione.
+        
+        \begin{itemize}
+            \item Il rumore \textbf{termico} è dato dal movimento casuale degli elettroni nel mezzo trasmissivo.
+            
+            \item Il rumore \textbf{indotto} arriva da sorgenti come per esempio motori che fungono da antenne trasmittenti, mentre il mezzo trasmissivo funziona come antenna ricevente.
+            
+            \item Il rumore \textbf{dovuto a interferenze} si ha quando due cavi sui quali vengono trasmesse informazioni sono sufficientemente vicini; i cavi agiscono, come prima, come antenne trasmittenti e riceventi.
+            
+            \item Il rumore \textbf{dovuto a impulsi} è causato da fonti esterne, come per esempio fulmini, che causano un cambiamento repentino del segnale.
+        \end{itemize}
+        
+        \subsubsection{Rapporto segnale-rumore}
+            Indichiamo il rapporto fra la potenza del segnale e la potenza del rumore come \textbf{SNR} (\textit{Signal to Noise Ratio}). Esso è dato da:
+            
+            \begin{center}
+                SNR = potenza media del segnale / potenza media del rumore
+            \end{center}
+            
+            Chiaramente vogliamo un valore alto, in quanto esso indica un segnale poco alterato dal rumore.
+            
+\section{Limiti di velocità per il trasferimento dati}
+    Una considerazione molto importante che possiamo fare è relativa al limite teorico della velocità massima che possiamo raggiungere su un determinato mezzo di trasmissione: essa è relativa a tre fattori: la \textbf{larghezza di banda}, il \textbf{numero di livelli} del segnale e la \textbf{qualità} del segnale (ossia la quantità di rumore).
+    
+    \subsection{Canali senza rumore: Teorema di Nyquist}
+        Il primo importante risultato teorico è questo teorema, che assume il caso ottimo di un canale senza rumore.
+        \begin{center}
+            Velocità in bit per secondo = 2 $\cdot$ larghezza di banda $\cdot \log_2L$
+        \end{center}
+        Dove L è il numero di livelli del segnale che possono essere usati per rappresentare i dati.
+        
+        Restando in ambito teorico è corretto dire che per ottenere una velocità di trasferimento maggiore basta aumentare L. Questo in pratica è poco fattibile in quanto introduciamo un problema per il ricevente: esso deve essere in grado di distinguere fra il maggior numero di livelli, il che richiede sia più sofisticato e introduce un certo livello di inaffidabilità nella trasmissione.
+        
+    \subsection{Canali con rumore: Teorema di Shannon}
+        Nella pratica non esistono canali senza rumore. Shannon dimostrò un teorema per calcolare la \textbf{capacità}, ossia la velocità massima, di un canale con rumore.
+        \begin{center}
+            Capacità = larghezza di banda $\cdot \log_2(1 + SNR)$
+        \end{center}
+        
+        Si noti che il numero di livelli non appare qui. Il teorema di shannon infatti definisce una caratteristica del canale, e non del metodo di trasmissione.
+        
+        I due teoremi appena visti non sono mutualmente esclusivi e anzi, nella pratica si usano in congiunzione per trovare velocità massima e numero di livelli da utilizzare.
+        
+\section{Prestazioni}
+    Discutere delle prestazioni e dell'efficienza di una rete comporta la conoscenza di alcuni concetti e terminologie di base, che andremo ora a descrivere.
+    
+    \subsection{Larghezza di banda}
+        Questo termine può essere usato con due accezioni:
+        \begin{itemize}
+            \item \textbf{Larghezza di banda in hertz:} come abbiamo già discusso, rappresenta l'intervallo di frequenze contenute in un segnale.
+            
+            \item \textbf{Larghezza di banda in bit per secondo:} questa rappresenta invece la velocità massima alla quale possiamo spedire informazioni su un certo canale trasmissivo.
+        \end{itemize}
+        
+    \subsection{Throughput}
+        Il \textbf{throughput} è la velocità alla quale possiamo spedire dati attraverso una rete. Sebbene possa sembrare simile alla larghezza di banda in bps, è una misura diversa. È infatti una misura più pratica, che prende in considerazione per esempio eventuali nodi bottleneck.
+        
+    \subsection{Latenza (Ritardo)}
+        La latenza è il tempo necessario perché un intero messaggio arrivi a destinazione. Essa viene misurata a partire da quando il primo bit viene inviato dal mittente e si conclude quanto l'ultimo bit viene recepito dal destinatario.
+        
+        Possiamo dire che la latenza è composta da quattro fattori:
+        \begin{center}
+            Latenza = tempo di propagazione + tempo di trasmissione + tempo di attesa + tempo di inoltro
+       \end{center}
+       
+       \subsubsection{Tempo di propagazione}
+            È il tempo necessario al segnale per viaggiare dal mittente al destinatario.
+            \begin{center}
+                $\text{Tempo di propagazione} = \frac{\text{distanza}}{\text{velocità di propagazione}}$
+            \end{center}
+            
+        \subsubsection{Tempo di trasmissione}
+            Normalmente spediamo un insieme di bit; per il primo dobbiamo aspettare che questo arrivi a destinazione, ma i successivi saranno accodati e quindi non richiederanno un'ulteriore attesa. Il tempo di trasmissione è il tempo necessario a inserire i bit del messaggio sul mezzo trasmissivo.
+            \begin{center}
+                $\text{Tempo di trasmissione} = \frac{\text{dimensione del messaggio (in bit)}}{\text{larghezza di banda (in bit)}}$
+            \end{center}
+            
+        \subsubsection{Tempo di attesa}
+            Questo è dato dai tempi di attesa nelle code dei nodi intermedi. Non è un valore fisso, in quanto varia in base al carico della rete.
+            
+        \subsubsection{Tempo di inoltro}
+            Questo tempo dipende comunque dai nodi intermedi e dalla velocità con cui inoltrano i messaggi, ma non è dipendente dal carico della rete; bensì dalle caratteristiche hardware dei nodi intermedi.
+            
+    \subsection{Prodotto banda-ritardo}
+        Nonostante i valori di larghezza di banda e di latenza siano importanti, ancora più importante è il loro prodotto; esso ci dice quanti bit possiamo spedire su un certo canale per riempirlo. Spedirne di meno sarebbe poco efficace, mentre spedirne di più causerebbe una perdita di dati.

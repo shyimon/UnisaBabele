@@ -1,0 +1,66 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{xcolor, soul}
+\sethlcolor{yellow}
+\usepackage{amsfonts}
+\usepackage{venndiagram}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{margin=1.1in}
+
+\title{Reti Di Calcolatori}
+\author{Cosimo Botticelli}
+\date{2022}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{Capitolo 1: Introduzione}
+\include{readme}
+\include{0.1_introduzione}
+
+\chapter{Capitolo 2: Modelli per le Reti}
+\include{0.2_modelli_per_reti}
+
+\chapter{Strato Fisico, Capitolo 3: Dati e Segnali}
+\include{1.1_dati_segnali}
+
+\chapter{Strato Fisico, Capitolo 4: Trasmissione Dati}
+\include{1.2_trasmissione_dati}
+
+\chapter{Strato Fisico, Capitolo 5: Multiplexing e Diffusione}
+\include{1.3_multiplexing}
+
+\chapter{Strato Fisico, Capitolo 7: Commutazione o Switching}
+\include{1.4_commutazione}
+
+\chapter{Strato di Collegamento, Capitolo 9: Rilevamento e Correzione di Errori}
+\include{2.1_correzione_errori}
+
+\chapter{Strato di Collegamento, Capitolo 10: Funzioni di Controllo nello Strato di Collegamento}
+\include{2.2_funzioni_controllo}
+
+\chapter{Strato di Collegamento, Capitolo 11: Accesso Multiplo}
+\include{2.3_accesso_multiplo}
+
+\chapter{Strato di Rete, Capitolo 18: Indirizzi Logici}
+\include{3.1_indirizzi_logici}
+
+\chapter{Strato di Rete, Capitolo 19: Protocollo IP}
+\include{3.2_protocollo_IP}
+
+\chapter{Strato di Rete, Capitolo 20: Risoluzione di Indirizzi e Gestione degli Errori}
+\include{3.3_risoluzione_indirizzi_gestione_errori}
+
+\chapter{Strato di Rete, Capitolo 21: Consegna, Inoltro e Instradamento}
+\include{3.4_consegna_inoltro_instradamento}
+
+\chapter{Strato di Trasporto, Capitolo 22: Protocolli UDP e TCP}
+\include{4.1_TCP_UDP}
+
+\chapter{Strato di Trasporto, Capitolo 23: Controllo della Congestione}
+\include{4.2_controllo_congestione}
+
+\end{document}

@@ -1,0 +1,88 @@
+Come è stato detto precedentemente, il protocollo IP è \textbf{best effort}, non gestisce quindi flusso ed errori; per comunicare è necessaria una sovrastruttura che prenda in considerazione queste possibilità.
+
+Ci serve innanzitutto un protocollo che permetta di trasformare indirizzi logici in indirizzi fisici. Il protocollo ARP (Address Resolution Protocol) permette di risalire all'indirizzo fisico di un nodo a partire dal suo indirizzo logico; il protocollo RARP (Reverse ARP) permette di fare il contrario, cosa che potrebbe talvolta essere utile.
+
+Il protocollo ICMP permette di inviare messaggi di segnalazione di vario tipo, come per esempio congestione ed errori relativi alla rete o al nodo di destinazione.
+
+\section{Risoluzione degli indirizzi}
+    Per inviare il pacchetto interessato a determinati nodi non basta l'indirizzo IP (ossia logico) ma è necessario anche quello fisico. Esso deve essere unico localmente, ossia all'interno della rete, ma non necessariamente globalmente.
+    
+    Ogni nodo della rete Internet viene identificato globalmente dal suo indirizzo logico, e localmente da quello fisico. Ciò significa che la consegna di un pacchetto richiede due livelli di indirizzamento: quello logico e quello fisico. La risoluzione di un indirizzo logico può essere fatta sia in modo statico che in modo dinamico.
+    
+    La \textbf{risoluzione statica} prevede una tavola che associa ogni indirizzo logico al corrispondente fisico. Ogni nodo della rete deve essere dotato di questa tavola e questo è anche il principale svantaggio, in quanto un aggiornamento della tavola implica la propagazione dell'informazione a tutti i nodi. La \textbf{risoluzione dinamica} prevede la risoluzione dell'indirizzo qualora venga richiesto tramite un determinato protocollo.
+    
+    \subsection{Risoluzione di un indirizzo logico: Protocollo ARP}
+        Questo protocollo prevede pacchetti speciali chiamati \textbf{richieste ARP}. Essi contengono l'indirizzo IP e fisico del mittente e l'indirizzo IP del destinatario. Siccome non possono essere recapitati direttamente al destinatario, vengono inviati in broadcast sulla rete. Solo il nodo corrispondente all'indirizzo IP della richiesta risponderà (in maniera diretta e non in broadcast) al nodo che ha effettuato la richiesta, con il proprio indirizzo fisico.
+        
+        Chiaramente non è efficiente eseguire una richiesta ARP per ogni pacchetto; per questo motivo un nodo memorizzerà l'associazione fra indirizzo logico e fisico in una \textbf{memoria cache} e lo manterrà per una certa quantità di tempo; questo andrà a facilitare le cose qualora ci fosse bisogno di inviare più pacchetti allo stesso nodo.
+        
+        \subsubsection{Incapsulamento}
+            Un messaggio ARP viene incapsulato direttamente in un frame dello strato di collegamento.
+            
+        \subsubsection{Quale indirizzo IP risolvere?}
+            Per arrivare a destinazione, un pacchetto potrebbe passare per diversi router, i quali indirizzi fisici devono essere conosciuti e scoperti tramite il protocollo ARP.
+            
+            Chiaramente l'indirizzo logico da risolvere (e quindi quello fisico da trovare) sono dipendenti dalla situazione. Se un nodo (sia esso il nodo sorgente o un router) deve inviare a un pacchetto sulla stessa rete (quindi il nodo finale) dovrà risolvere l'indirizzo della destinazione finale. Se invece il nodo corrente (sia esso quello originario o un router) deve inoltrare il pacchetto a un nodo esterno alla rete (non quello terminale dunque) l'indirizzo da risolvere sarà quello del router adeguato.
+            
+        \subsubsection{Proxy ARP}
+            Un \textbf{proxy ARP} è un nodo che invia e riceve messaggi ARP per conto di un gruppo di nodi. Quando riceve una richiesta ARP questo nodo risponde con il proprio indirizzo fisico. Questo fa sì che il nodo in questione si occupi anche di ricevere e inoltrare correttamente i pacchetti dati.
+            
+    \subsection{Risoluzione inversa: Protocolli RARP, BOOTP e DHCP}
+        Talvolta potrebbe essere necessario scoprire l'indirizzo IP a partire da quello fisico. Per esempio una stazione che non ha possibilità di memorizzare il proprio indirizzo IP in un file deve scoprirlo a ogni accensione. Questo non è un problema in quanto l'indirizzo fisico è sempre conosciuto.
+        
+        \subsubsection{RARP}
+            Il protocollo RARP (Reverse ARP) è molto simile ad ARP. Crea un messaggio contenente il proprio indirizzo fisico e lo spedisce in broadcast sulla rete locale. Sul nodo deve essere presente un nodo che conosce tutti gli indirizzi IP associati ai nodi: un server RARP. Questo server alla ricezione della richiesta RARP risponde in unicast al nodo richiedente con l'indirizzo IP di quest'ultimo.
+            
+            Questo protocollo presenta un problema: Il messaggio RARP non può andare oltre la rete locale. Quindi la gestione di varie reti o sottoreti costringe all'utilizzo di vari server RARP.
+            
+        \subsubsection{BOOTP}
+            Il protocollo BOOTP (Bootstrap Protocol) è un protocollo client/server che opera nello strato delle applicazioni. Questo significa che il server non deve necessariamente nella rete locale. I messaggi di questo protocollo vengono incapsulati in pacchetti UDP che a loro volta vengono incapsulati in pacchetti IP.
+            
+            Il suo funzionamento è quanto segue: l'indirizzo sorgente sarà settato a tutti 0 e quello destinatario a tutti 1. In questo modo il messaggio verrà inviato in broadcast locale. Se il server BOOTP è sulla rete locale abbiamo vinto, mentre se non lo è deve essere presente un nodo chiamato \textbf{relay agent}, il quale conosce l'indirizzo IP del server BOOTP. Provvederà quindi a inviare il messaggio dotato del proprio indirizzo IP e a ricevere la risposta, che fornirà successivamente al nodo richiedente.
+            
+        \subsubsection{DHCP}
+            Il protocollo BOOTP è un miglioramento rispetto al RARP ma non prevede una valutazione dinamica degli indirizzi IP. Un server BOOTP ha una tabella statica che va eventualmente gestita manualmente, cosa inefficiente.
+            
+            Il protocollo DHCP (Dynamic Host Configuration Protocol) offre una opzionale soluzione a questo problema, offrendo una configurazione statica o dinamica a scelta.
+            
+            \paragraph{Allocazione statica.} Il protocollo DHCP è compatibile con quello BOOTP e quindi ha le stesse funzionalità ed è interoperabile.
+            
+            \paragraph{Allocazione dinamica.} Un server DHCP utilizza anche un altro database che contiene un'insieme di indirizzi che possono essere assegnati dinamicamente. Quando viene richiesta l'assegnazione dinamica di un indirizzo IP viene controllata la lista di quelli statici e se non viene trovato lì viene assegnato un indirizzo dinamico non utilizzato dal database. Il client può usare questo indirizzo dinamico per un certo periodo di tempo previamente negoziato; per questo periodo l'indirizzo non può essere assegnato ad altri client.
+    
+\section{ICMP}
+    Il protocollo ICMP (Internet Control Message Protocol) è stato progettato per sopperire a mancanze del protocollo IP, come il non poter rilevare errori, o l'impossibilità di un nodo di scoprire informazioni sulla rete in cui si trova.
+    
+    \subsection{Tipi di messaggi}
+        I messaggi di questo protocollo si dividono in due categorie: messaggi di \textbf{notifica di errori} e messaggi di \textbf{richiesta}. I primi servono a segnalare eventuali problemi che un nodo ha riscontrato durante la gestione di un datagram IP. I secondi permettono a un host di ottenere informazioni specifiche riguardanti altri nodi della rete, per esempio i router ai quali è collegato.
+        
+    \subsection{Messaggi di notifica degli errori}
+        Tramite il protocollo ICMP è possibile spedire al mittente di un certo pacchetto informazioni di errori avvenuti durante la gestione del pacchetto stesso. Per limitare il traffico generato dal protocollo, se il messaggio ICMP contiene a sua volta un errore, questo non genera un messaggio di errore. Il protocollo permette di gestire cinque tipi di errore:
+        \begin{itemize}
+            \item \textbf{Destinazione non raggiungibile.} Quando un router non può inoltrare un datagram o l'host non può riceverlo (per esempio perché l'applicazione che dovrebbe riceverlo non esiste) il datagram viene eliminato e viene generato il relativo messaggio di errore ICMP.
+            
+            \item \textbf{Rallentamento della sorgente.} È una forma di controllo del flusso. Avviene quando un nodo o la destinazione sono costretti a eliminare un datagram perché il loro buffer è pieno. Vale anche come richiesta di rallentamento del flusso per il mittente così da diminuire le possibilità che altri datagram vengano scartati.
+            
+            \item \textbf{Tempo scaduto.} Questo messaggio di errore può essere generato quando il TTL di un datagram scade, oppure quando la destinazione riceve solo alcuni dei frammenti di un datagram: dopo aver aspettato un lasso di tempo gli altri frammenti viene generato l'errore.
+            
+            \item \textbf{Problemi dei parametri.} Viene generato qualora ci sia un errore nei parametri di un datagram: questi possono generare seri errori quindi qualora ci si accorga di parametri irregolari ciò viene segnalato tramite un apposito errore.
+            
+            \item \textbf{Ridirezione.} Gli host solitamente non partecipano alle operazioni di routing perché ciò creerebbe una mole di traffico inaccettabile. Solitamente un host ha tavole di routing statiche ed è connesso a un router di default. Quando quest'ultimo si accorge che l'host potrebbe instradare i pacchetti verso un router migliore, lo segnala con un errore di ridirezione causando l'aggiornamento delle tavole di routing dell'host.
+        \end{itemize}
+        
+    \subsection{Messaggi di richiesta}
+        Questi messaggi, nonostante non siano collegati a nessun errore, sono utili a diagnosticare caratteristiche e problemi della rete. Ne sono state definite quattro coppie:
+        \begin{itemize}
+            \item \textbf{Messaggi di richiesta e risposta echo.} Usati per diagnosticare problemi di rete. Permettono di valutare se due nodi possono comunicare. Siccome vengono incapsulati in pacchetti IP, sappiamo che per un messaggio echo andato a buon fine, una normale comunicazione IP andrà a buon fine.
+            
+            \item \textbf{Messaggi di richiesta e risposta timestamp.} Permettono di valutare il tempo di richiesta e risposta fra due nodi. Possono essere usati anche per sincronizzarne i clock.
+            
+            \item \textbf{Messaggi di richiesta e risposta maschera.} È possibile che un nodo conosca il porprio indirizzo IP ma non la maschera, che è una caratteristica della rete e non dell'host. Può quindi inviare in unicast o broadcast un messaggio di richiesta maschera per scoprirla.
+            
+            \item \textbf{Messaggi di sollecito e presenza router.} Messaggio inviato in broadcast per ottenere l'indirizzo di un router. Un router può invece annunicare la propria presenza sulla rete con un messaggio di presenza router.
+        \end{itemize}
+        
+    \subsection{Ping}
+        Il comando \texttt{ping} utilizza i comandi di richiesta e risposta echo per stabilire se un host è attivo e risponde, allegato di tempo di di andata e ritorno del messaggio. Ciò avviene continuamente finché il comando non viene interrotto. Viene anche mostrato il valore TTL.
+        
+        \subsubsection{Traceroute}
+            Questo comando permette di scoprire il percorso, ossia la sequenza di router che attraverserebbe un datagram IP da una sorgente a una destinazione. Questo avviene usando i messaggi di errore: vengono inviati pacchetti con TTL che parte da 1 e va incrementando, così da registrare ogni volta il router a cui il pacchetto si è fermato. Questo fa scoprire tutti i router meno la destinazione finale: ciò avviene inviando un messaggio con porta di destinazione 1, porta non supportata dal protocollo UDP. Ciò genera un errore e ci dà il pezzo finale del percorso.

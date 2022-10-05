@@ -1,0 +1,276 @@
+\chapter{Object Design Document}
+
+    L'\textbf{Object Design} va ad aggiungere a ciò che abbiamo prodotto durante il RAD. Inoltre è in questo documento che si iniziano a prendere decisioni più vicine all'implementazione. Definiamo cose come le API, gli algoritmi che caratterizzano una classe, le strutture dati da usare, dettagli di ottimizzazione e tutto ciò che ha a che fare con l'implementazione.
+    
+    Un sistema è fatto di \textbf{application objects} e \textbf{solution objects}. Durante l’analisi dei requisiti noi abbiamo colmato il requirements gap (a partire dal problema abbiamo individuato gli oggetti così come sono visti 
+    nell’ambito del dominio applicativo, e quindi come sono visti dal nostro cliente); nel System Design ci siamo 
+    occupati dell’architettura del nostro sistema (anche l’architettura fisica, vicina alla macchina, off-the-shelf 
+    components ecc.), l’infrastruttura che ci consente di implementare il nostro sistema. Nell’OD noi colmiamo 
+    il gap tra quanto fatto nell’AR e quanto fatto nel SD. Andiamo quindi a costruire del custom objects, degli 
+    oggetti del dominio delle soluzioni, e degli algoritmi che li vanno a caratterizzare.
+    
+    Distinguiamo quattro tipi di attività all'interno dell'object design: \textbf{riuso}, \textbf{specifica}, \textbf{ristrutturazione}, \textbf{ottimizzazione}. Esse vanno eseguite come segue:
+    
+    Dapprima ci occupiamo di riuso e/o specifica, sequenzialmente, contemporaneamente o iterando. Nel \textbf{riuso} andiamo a individuare componenti che possono essere riutilizzati, con o senza modifiche, siccome potrebbe capitare di non volere o poter effettuarne. Ciò è anche dato dall'origine di tali componenti; esse potrebbero certamente essere interne al progetto, ma anche appartenenti ad altri nostri progetti o addirittura progetti che non ci appartengono, nel qual caso si va a parlare di utilizzo di componenti off the shelf o servizi, per i quali è raramente possibile fare modifiche.
+    
+    Durante l'attività di \textbf{specifica} andiamo a individuare componenti od operazioni mancanti, la loro visibilità, il tipo e le signature delle operazioni, vincoli ed eccezioni.
+    
+    Queste due attività verranno sincronizzate e confluiranno nelle attività seguenti, che anch'esse potranno essere eseguite in qualsiasi ordine. Questo porta alla \textbf{ristrutturazione}, che comprendono la revisione dell'ereditarietà, il collasso delle classi (che possono essere collassate da classi a semplici attributi di altre classi per esempio) e la realizzazione delle associazioni. L'attività restante è lo studio dell'\textbf{ottimizzazione}.
+    
+    \section{Riuso}
+        Lo scopo del riuso di codice e componenti è sfruttare conoscenze e funzionalità senza doverle riprogettare o reimplementarle. Può essere usato con:
+        \begin{itemize}
+            \item \textbf{Composition (black box reuse):} Ottengo funzionalità da componenti esistenti aggregandoli ad altri.
+            \item \textbf{Inheritance (white box implementation):} Vedo cosa vado a riutilizzare nel dettaglio e ne conosco il funzionamento. Posso farlo tramite:
+            \begin{itemize}
+                \item \textbf{Implementation o class inheritance:} Estendo funzionalità da una classe padre. Quest'ultima è quindi una classe che \textbf{esiste}, con alcune o tutte le operazioni già implementate, da cui vado a ereditare.
+                \item \textbf{Interface inheritance o subtyping:} Eredito da una classe \textit{astratta} che specifica ma non implementa le sue funzionalità. Devo implementarle.
+            \end{itemize}
+            
+            Mi conviene usare la \textbf{class inheritance} quando c'è una relazione tipo-sottotipo fra le due classi. Questo vuol dire che se eredito l'implementazione di un metodo, la classe che sto realizzando deve avere nella sua specifica anche l'operazione che sto ereditando. Ciò non avviene per esempio se cerco di implementare uno \texttt{Stack} da una classe \texttt{List}. Se l'utente andrà a usare l'operazione \texttt{remove()} anziché \texttt{pop()}, questo potrebbe causare problemi. Mi conviene, in casi come questo, incapsulare la \texttt{List} all'interno della nuova classe, usando per esempio una variabile d'istanza di tipo \texttt{List}. Questo è possibile tramite la \textbf{Delegation}.
+            
+            \item \textbf{Delegation:} Abbiamo un oggetto receiver e un oggetto delegato. Il client chiama il receiver, il quale delega al delagato il compito di elaborare dati.
+        \end{itemize}
+    
+    \section{Design Patterns}
+        Prima di occuparci del vero e proprio object design è bene conoscere almeno qualche design pattern.
+        
+        \paragraph{Cosa è un design pattern}
+            Se andiamo a modellare in maniera rigida la realtà, andiamo a riflettere perfettamente quella di oggi ma non necessariamente bene quella di domani. Un \textbf{design pattern} descrive la soluzione a un problema che ricorre spesso. Può essere dunque utilizzato molte volte, in molti contesti e offre un livello di astrazione utile.
+            
+        \paragraph{Pattern strutturali, comportamentali, creazionali}
+            Vedremo alcuni design patterns, che possiamo dividere in:
+            \begin{itemize}
+                \item \textbf{Pattern strutturali:} Sappiamo come si comportano a runtime, il loro comportamento è una diretta conseguenza della loro struttura. Vedremo i pattern \textbf{Adapter}, \textbf{Bridge} e \textbf{Proxy}.
+                \item \textbf{Patten comportamentali:} Oltre alla definizione della loro struttura, essi hanno un comportamento che dobbiamo descrivere, cosa che spesso si fa con i sequence diagrams. Andremo a vedere i pattern \textbf{Command}, \textbf{Observer} e \textbf{Strategy}.
+                \item \textbf{Pattern creazionali:} Automatizzano e astraggono la creazione di oggetti, rendendola trasparente all'utente o client o aumentandone l'efficienza. Vedremo i pattern \textbf{Abstract Factory} e \textbf{Builder}.
+            \end{itemize}
+            
+        \subsection{Composite Pattern}
+            Se abbiamo il problema di dover modellare una struttura che può essere ricorsivamente ottenuta (quindi di cui non possiamo conoscere con certezza la profondità), ci avvaliamo del \textbf{composite pattern}.
+            
+            
+            Esso compone oggetti in strutture ad albero che permettono al client di decidere in maniera dinamica se l'oggetto corrente è una foglia o meno. Si può modellare in questo modo per esempio anche il CVS (una attività può essere atomica, quindi un task, o essere diviso in sottoattività a sua volta).
+            
+            Un altro esempio dell'utilità di questo pattern è la modellazione grafica di menù, siccome una entry del menù potrebbe essere la radice di un sottomenù oppure un'opzione atomica.
+            
+        \subsection{Facade}
+            Un sottosistema consiste di oggetti che rappresentano entità del mondo e un'interfaccia che mostra le informazioni utili all'esterno del sottosistema. Suddetta interfaccia può essere realizzata con un \textbf{facade}. Questo design pattern fornisce un'interfaccia di alto livello fornendo un accesso alle operazioni del sottosistema, ma senza necessariamente fornire accesso agli elementi e dettagli interni del sottosistema. Il vantaggio ovvio di questo design pattern è quello di diminuire l'accoppiamento, siccome l'accesso al sottosistema avviene in maniera indiretta, tramite un singolo oggetto, il quale è più manutenibile. Un altro effetto dell'utilizzo di questo deisgn pattern è l'aumento della comprensione delle funzionalità del sottosistema. Un pattern \textbf{facade} potrebbe essere poco desiderabile, per esempio nel caso di un sistema che ha bisogno di essere molto performante, quindi permettendo a ogni client di accedere alle funzionalità di ogni sottosistema, ma vengono a mancare comprensibilità e sicurezza.
+            
+        \subsection{Adapter e Bridge patterns}
+            Quando andiamo a selezionare componenti per il riuso, essi possono essere componenti esistenti, presi da librerie o off the shelf. In questi casi possiamo adattarli ai nostri scopi andando a modificare l'API se abbiamo il codice sorgente, o usando un design pattern come \textbf{adapter} o \textbf{bridge}. Vado dunque a modificare l'interfaccia del componente che vado a usare per farla "matchare" con l'interfaccia dei componenti che devo realizzare, oppure uso uno schema di progettazione.
+            
+            Le \textbf{somiglianze} fra adapter e bridge è che entrambi sono usati per nascondere i dettagli dell'implementazione sottostante. La \textbf{differenza} è che l'adapter consente a componenti che hanno interface diverse di lavorare insieme, mentre il bridge ci consente di realizzare diverse implementazioni da una stessa astrazione, e anche di farle evolvere e variare indipendentemente da essa. In questo modo il client è concentrato sull'interfaccia, l'implementazione può variare e di essa se ne occupa solo la classe intermedia. È utile quando si vuole realizzare un sistema estendibile, al quale aggiungere componenti che non sono ancora noti in fase di analisi o progettazione.
+        
+            \subsubsection{Adapter} Noto anche come \textbf{wrapper}, converte l'interfaccia di una classe in un'altra interfaccia che il client si aspetta, così da rendere le due classi compatibili tramite l'adapter anche se di base non lo sono. Esistono due tipi di adapter:
+            \begin{itemize}
+                \item \textbf{Class adapter:} Usa l'ereditarietà multipla per adattare un'interfaccia a un'altra.
+                \item \textbf{Object adapter:} Più comunemente usato, serve ad adattare componenti scritte in un linguaggio di programmazione diverso da quello utilizzato, e si avvale di ereditarietà singola e delegation.
+            \end{itemize}
+            
+            \textbf{Funzionamento:} Abbiamo una classe \texttt{Target} che vogliamo realizzare, ma abbiamo trovato una classe \texttt{Adaptee} che fa la stessa esatta cosa di \texttt{Target} ma ha un'interfaccia diversa. Utilizzo dunque un Adapter che avrà la stessa interfaccia d \texttt{Target} (e infatti potrei non implementare \texttt{Target} ma lasciarlo come interfaccia). \texttt{Client} avrà al suo interno un'istanza di \texttt{Target}, il tipo statico sarà quello di \texttt{Target}, ma il tipo dinamico sarà quello di \texttt{Adapter}, perché tra \texttt{Adapter} e \texttt{Target} vige una relazione di tipo-sottotipo. \texttt{Adapter} al suo interno dovrà avere come variabile d'istanza un'istanza di \texttt{Adaptee}, che userà per convertire il metodo di \texttt{Adaptee} (ExistingRequest) nel metodo di \texttt{Target} (Request). \texttt{Request()} sarà
+            implementato nell’adapter andando a chiamare \texttt{ExistingRequest()} sulla variabile d’istanza di \texttt{Adaptee}.
+            
+            Se \texttt{Adaptee} è un elemento scritto in un linguaggio diverso ovviamente sarà più difficile adattarlo.
+            Comunque, il vantaggio dell’adapter è che se trovo poi una soluzione migliore da adattare, posso implementarla nell’adapter (all’interno del quale confino tutte le modifiche) senza andare a cambiare tutto nel client.
+            
+            
+            \subsubsection{Bridge} Noto anche come Handle/Body pattern, viene usato per "disaccoppiare un'astrazione dalla sua implementazione, in modo tale che esse possano variare indipendentemente". Permette dunque di decidere, anche dinamicamente, quale implementazione dell'interfaccia voglio usare, ed è utile per sviluppare interfacce verso componenti che sono incomplete, non ancora note o non disponibili durante il testing.
+            
+            Ad esempio, supponiamo di avere un sistema “VIP” che deve usare l’interfaccia di “Seat”. Quello che farò sarà implementare l’interfaccia di Seat attraverso una gerarchia di classi, “SeatImplementation” che fornisce diverse implementazioni per Seat. SeatImplementation è una interfaccia, e può decidere anche dinamicamente quale implementazione usare tra Stub Code, AIMSeat e SARTSeat. Ad esempio Stub Code può essere utilizzata nel caso Seat non fosse ancora implementata, per il testing. 
+
+            SeatImplementation fornisce le stesse operazioni di Seat, e io evito al client di sapere qual è l’implementazione che sto utilizzando (Stub Code ecc. implementeranno SeatImplementation). Avremo dunque sempre almeno 2 classi: l’interfaccia (in questo caso Seat) che viene fornita all’esterno e l’implementazione, che consiste in una gerarchia di classi (con un’interfaccia e diverse implementazioni). 
+
+            Seat avrà una variabile d’istanza imp di tipo SeatImplementation, su cui vengono implementati i metodi dal client. Chiaramente prima di potervi invocare i metodi dovrò istanziare SeatImplementation, e potrò farlo o con un oggetto StubCode, o con un oggetto AIMSeat o con un oggetto SARTSeat. Insomma, con un qualunque oggetto il cui tipo è una delle sottoclassi di SeatImplementation. Quindi ho più implementazioni per una stessa astrazione, il tutto in maniera trasparente al client (VIP). Il trucco è quello di non avere direttamente nel client la variabile di tipo SeatImplementation, perché altrimenti è lui a decidere quale implementazione utilizzare. Per questo usiamo un oggetto intermedio (in questo caso Seat) che fornisce l’interfaccia a VIP, ma non l’implementazione, nascosta all’interno di Seat. Ovviamente questo è meno efficiente perché devo fare due chiamate, ma abbiamo una maggiore trasparenza.
+            
+        \subsection{Proxy}
+            La creazione e/o inizializzazione di un oggetto può talvolta essere costosa. Prendiamo per esempio un browser web e una connessione piuttosto lenta. Quando carichiamo una pagina gli elementi più costosi da scaricare sono quelli multimediali, come le immagini.
+            
+            Ebbene, un oggetto \textbf{Proxy} non è altro che un fantoccio, un oggetto molto poco costoso da istanziare che verrà caricato al posto di quello costoso ma meno necessario (in questo caso l'immagine). Quando l'istanziazione dell'oggetto reale sarà necessaria, sarà il proxy stesso a eseguire tale compito.
+            
+        \subsection{Command}
+            Un'azione complessa da implementare è il comando \textbf{undo}. Un modo semplice ed efficace per fare ciò è con il design pattern \textbf{command}. Una generica azione non viene eseguita da un \textbf{Action Performer} ma bensì viene incapsulata in un oggetto \textbf{command}. Questo oggetto command prima di eseguire l'azione memorizza lo stato. Così facendo quando vogliamo annullare un comando basta chiamare il metodo \textbf{undo()} dell'oggetto command.
+            
+        \subsection{Observer}
+            Anche chiamato \textbf{"Publish and Subscribe"}, stabilisce una dipendenza uno a molti tra oggetti in maniera che se un oggetto cambia stato, i suoi dipendenti verranno notificati e aggiornati automaticamente.
+            
+            Viene utilizzato per mantenere la consistenza fra stati ridondanti e ottimizzare cambiamenti in batch per mantenere la consistenza.
+            
+        \subsection{Strategy}
+            Supponiamo che esistano molti algoritmi diversi fra loro per la risoluzione di uno stesso task (come per esempio ordinamento di un array), e magari alcuni sono più appropriati di altri in momenti diversi dell'esecuzione o dello sviluppo. Bene, noi vogliamo poter decidere dinamicamente quale algoritmo utilizzare, oltre che aggiungere algoritmi a questa lista di potenziali algoritmi, e il tutto in maniera completamente trasparente.
+            
+            Risulta in un certo senso simile al previamente visto \textbf{Bridge Pattern}, siccome ha diverse implementazioni dello stesso task. La differenza è che non stiamo parlando di oggetti che possono avere la stessa interfaccia bensì di algoritmi, di \textbf{operazioni} che possono avere differente implementazione.
+            
+        \subsection{Abstract Factory}
+            Prendiamo qualcosa come un'interfaccia utente, che ha diversi \textbf{Looks and Feels}, cosa che vediamo abbastanza spesso in quasi tutti i software dotati di interfaccia utente. Ciò che voglio fare è indicare quale Look preferisco e istanziare automaticamente gli oggetti giusti (icone, scrollbar, sfondi, palette di colori), anziché lasciare all'utente il compito di dover selezionare ogni singolo dettaglio. La stessa cosa vale per esempio per l'installazione di un software su di un sistema operativo, voglio installare i driver corretti avendo solo l'informazione relativa al sistema operativo.
+            
+            Il client, per ovviare a questo problema, ha al suo interno una variabile d'istanza di tipo \texttt{AbstractFactory}, la quale ha diverse implementazioni che chiameremo per esempio \texttt{ConcreteFactory}. Il client deve sapere quali sono queste \texttt{ConcreteFactory}, ovviamente deve conoscere l'interfaccia di \texttt{AbstractFactory} e deve anche conoscere l'interfaccia dei vari prodotti (\texttt{AbstractProduct1, AbstractProduct2}...), senza tuttavia sapere come sono implementati i prodotti, in quanto è proprio questo il processo che vogliamo delegare alla \textbf{Factory} in modo trasparente.
+            
+        \subsection{Builder Pattern}
+            Questo pattern è in un certo senso complementare all'\textbf{Abstract Factory}. Serve a rendere indipendente e trasparente il processo di inizializzazione rispetto all'utilizzatore.
+            
+            Per esempio, per installare un sistema che abbiamo creato dovremo andare a inizializzare e installare tutta una serie di componenti, e non vogliamo far decidere all'utente quali è assolutamente necessario installare o in che ordine, quindi andiamo a creare un'operazione che andrà a specificare proprio queste cose. Tuttavia questa operazione sarà più semplice ed al alto livello, e quindi necessiterà di una singola invocazione da parte dell'utente.
+            
+    
+    \section{Specifica delle Interfacce dei Sottosistemi}
+        Nella fase di \textbf{System Design} abbiamo definito i Servizi dei moduli, poi abbiamo dettagliato la specifica sia da un punto di vista sintattico (tipi, parametri), sia semantico (pre e post condizioni).
+        
+        Abbiamo diversi tipi di utenti che possono utilizzare una classe:
+        \begin{itemize}
+            \item L'\textbf{implementatore} realizza la classe, ne progetta le strutture dati e definisce le interfacce delle operazioni pubbliche, oltre che ovviamente implementarne il codice.
+            \item L'\textbf{utente} invoca le operazioni della classe utili alla realizzazione di un'altra classe detta classe client. L'interfaccia della classe utilizzata definisce il modo in cui può essere usata, mostra il boundary della classe in termini di servizi offerti.
+            \item L'\textbf{extender} sviluppa specializzazioni della classe. La specifica delle interfacce specifica il comportamento corrente della classe. L'extender può porre dei vincoli sulla classe specializzata rispetto a quella originale, andando così a modificarne l'interfaccia.
+        \end{itemize}
+        
+        Dunque, durante l'\textbf{Analisi dei Requisiti} sono stati identificati gli attributi delle operazioni senza specificare il loro tipo e ponendo minima attenzione sui parametri. Abbiamo poi proseguito, con il \textbf{System Design} a rendere le operazioni parte di servizi e quindi dei vari moduli che compongono il nostro sistema. Durante l'\textbf{Object Design} ci occupiamo di aggiungere \textbf{informazioni di visibilità}, \textbf{informazioni sulla signature} e sui \textbf{tipi}, e aggiungere i \textbf{contratti} (la specifica semantica delle operazioni).
+        
+        \subsection{Informazioni sulla visibilità}
+            UML definisce 3 livelli di visiblità:
+            \begin{itemize}
+                \item \textbf{Private} (mirato all'utilizzo da parte del class implementator), si indica ponendo il simbolo "-" prima del membro della classe, ed è utilizzato per attributi e operazioni che trovano utilità all'interno della classe in cui sono inseriti.
+                \item \textbf{Protected} (mirato all'utilizzo da parte del class extender), si indica inserendo il simbolo "\#" prima del membro della classe, ed è utilizzabile all'interno della classe ma anche dai suoi discendenti (relazione extends).
+                \item \textbf{Public} (mirato all'utilizzo da parte del class user), si indica con il simbolo "+" prima del membro della classe, ed è utilizzato per attributi o operazioni accessibili da qualunque altra classe.
+            \end{itemize}
+            
+            L'utilizzo di terminologie così vicine alla programmazione object oriented rende l'operazione di mappatura da UML a Java abbastanza automatica.
+            
+            \subsubsection{Euristiche per l'information hiding} Occorre definire attentamente le interfacce pubbliche delle classi così come per i sottosistemi, il che è un modo per costruire un firewall intorno alle classi.
+            
+            Applicare sempre il principio \textbf{"need to know"}: solo se qualcuno ha bisogno di conoscere informazioni esse si rendono pubbliche, ma dovrebbero comunque essere fornite attraverso dei canali (per esempio con operazioni \texttt{get} e \texttt{set} anziché fornire accesso diretto agli attributi). L'idea è che meno si conosce dei funzionamenti interni dell'operazione e minori saranno le probabilità di essere influenzati da un cambiamento, e dunque sarà più facile modificare una classe quando necessario. Per esempio alcune informazioni potrebbero essere rappresentate in modo diverso all'interno di come sono presentate esternamente. Un esempio è memorizzare l'orario come un numero intero rappresentante i secondi ma poi elaborarlo per mostrarlo come ore, minuti e secondi all'esterno.
+            
+            Il trade-off in questo caso è information hiding vs efficienza, visto che per accedere a un attributo privato può essere necessario più tempo.
+            
+            \subsubsection{Principi di Design dell'information hiding} Solo le operazioni di una classe possono modificare i suoi attributi (quindi si accede agli attributi solo tramite le operazioni).
+            
+            Nascondiamo il contenuto degli oggetti tramite il suo confine, il suo boundary (per esempio definendo classi astratte che fanno da mediatore fra il sistema e il mondo esterno e i vari sottosistemi).
+            
+            Non applicare un'operazione al risultato di un'altra operazione. È meglio scrivere un'altra operazione di più alto livello che le combina, così che l'utente non debba preoccuparsi di combinarle.
+            
+        \subsection{Informazioni di tipo e sulla signature} Gli attributi hanno il loro tipo, così come le operazioni hanno il tipo di ritorno e la signature completa con attributi e tipi. Gli attributi e le operazioni senza informazioni sul tipo possono essere accettabili in fase di analisi.
+            
+        \subsection{Aggiungere contratti (ossia la specifica semantica delle operazioni e delle classi)} I contratti su una classe consentono sia al chiamante che al chiamato (ossia la classe stessa) di condividere le stesse assunzioni sulla classe. Insomma, la specifica di una classe serve a far sì che sia chi deve implementare sia chi deve usare la classe abbiano \textbf{la stessa idea} di ciò che la classe fa: Chi la implementa fa in modo di fornire alle classi chiamanti certe funzionalità definite dalla specifica; chi la usa sa invece qual è il comportamento della classe specificato dai contratti.
+            
+            I contratti includono tre tipi di vincoli:
+            \begin{itemize}
+                \item Un'\textbf{invariante}, che è un predicato che è sempre vero per tutte le istanze della classe e si applica allo stato di un oggetto. Le invarianti sono vincoli associati a classi e interfacce e sono usati per specificare vincoli di consistenza tra attributi di una classe (tutte le istanze di quella classe devono rispettare questi vincoli; se un oggetto cambia stato deve comunque farlo restando nel dominio definito dall'invariante, rispettandone i vincoli).
+                \item Alle \textbf{operazioni} applichiamo due tipi di vincoli, il primo dei quali è la \textbf{precondizione}, che è un predicato che deve essere vero prima che l'operazione sia invocata, e quindi specifica vincoli che il chiamante deve soddisfare prima di chiamare l'operazione.
+                \item Il secondo tipo di vincolo applicato alle \textbf{operazioni} è la \textbf{postcondizione}, la quale è un predicato che deve essere vero dopo che l'operazione è stata invocata, e specifica vincoli che l'oggetto deve rispettare dopo la chiamata dell'operazione.
+            \end{itemize}
+            
+        \subsection{OCL: Object Constraint Language}
+            Per esprimere vincoli in UML si usa il linguaggo OCL, un linguaggio logico e formale. OCL permette di specificare formalmente vincoli su un singolo elemento o su gruppi di elementi di un modello, e un vincolo è espresso come un'espressione OCL che restituisce il valore \textbf{vero} o \textbf{falso}. OCL è un linguaggio dichiarativo, non procedurale (non possiamo vincolare il control flow).
+            
+            \paragraph{Esempio}, di cui poi andremo a spiegare ed analizzare il significato delle varie parti: Operazione \texttt{put} per una \texttt{HashTable}.
+            
+            \textbf{Invariante}: \texttt{context HashTable inv: numElements >= 0}
+            
+            \textbf{Precondizione}: \texttt{context HashTable::put(key, entry) pre:!containsKey(key)}
+            
+            \textbf{Postcondizione}: \texttt{context HashTable::put(key, entry) post:containsKey(key) and get(key) = entry}
+            
+            \vspace{1mm}
+            \paragraph{Context} mi dice la classe a cui si fa riferimento, mente \texttt{::} è l'\textbf{operatore di scope} (utilizzato anche in C++, indica un'operazione di una classe, in questo caso mi va a dire che \texttt{put()} è un'operazione di \texttt{HashTable}; il punto, come siamo abituati in Java, va a indicare invece l'operazione per quella specifica istanza) e poi si indica l'operazione su cui stiamo andando a stabilire i vincoli.
+            
+        \subsection{Ereditarietà dei contratti} Quando si estende una classe, cosa succede ai contratti? Un class user si aspetta che i contratti che valgono per una superclasse valgano anche per la sottoclasse. Cosa succede dunque quando faccio \textbf{overriding}?
+        \begin{itemize}
+            \item \textbf{Precodnizione}: Un metodo di una sottoclasse può \textbf{indebolire} la precondizione del metodo che sovrascrive (il metodo della sottoclasse può avere a che fare con più casi). Per esempio prendiamo in considerazione un metodo che ha a che fare con numeri positivi, quindi la cui precondizione prevede che \texttt{n > 0}. Bene, se sovrascrivo questo metodo posso pensare di gestire anche il numero 0, quindi avrò per la sottoclasse una precondizione del tipo \texttt{n >= 0}.
+            
+            \textbf{Perché possiamo indebolire la precondizione ma non restringerla?} Perché altrimenti la sottoclasse non potrebbe gestire input altresì possibili per la superclasse, e questo sarebbe un comportamento anomalo in quanto la sottoclasse è anche un oggetto del tipo della superclasse e deve rispettarne i vincoli. Può indebolirla perché quando sono nel contesto della sottoclasse so come gestire i valori di input nuovi, mentre nel contesto della superclasse avrò solo input appartenenti al range di valori ristretti, che saprò ugualmente come gestire perché sono previsti dalla specifica della superclasse.
+            
+            \item \textbf{Postcondizione}: I metodi della sottoclasse devono assicurare le \textbf{stesse postcondizioni} della superclasse. Questo per lo stesso discorso del punto precedente: Se l'oggetto della sottoclasse non rispetta la postcondizione avrà un comportamento anomalo, dato che il programma si aspetta un comportamento la cui specifica è definita dalla superclasse, non dalla sottoclasse.
+            
+            \item \textbf{Invarianti}: Una sottoclasse deve rispettare tutte le invarianti della superclasse. Tuttavia, una sottoclasse può \textbf{restringere} le invarianti ereditate (quindi i possibili stati in cui può trovarsi un oggetto della sottoclasse sono un sottoinsieme degli stati in cui può trovarsi un oggetto della superclasse).
+            
+            \textbf{Perché?} Consideriamo il caso in cui il tipo della variabile è della superclasse ma andiamo a istanziare un oggetto della sottocalsse: stiamo rispettando comunque l'invariante della superclasse in quanto ci troveremo in un sottoinsieme degli stati ammessi dalla sua invariante. Il contrario non sarebbe tuttavia contrario, con invarianti più permissive potremmo ritrovarci con stati anomali e ingestibili.
+        \end{itemize}
+        
+    \section{Caratteristiche dell'ODD}
+        Il documento tramite il quale andiamo a documentare l'Object Design è detto \textbf{Object Design Document (ODD)}. Esso è molto simile al RAD, ma vengono aggiunti oggetti, modelli dinamici e funzionali dal dominio delle soluzioni, navigational map per il modello a oggetti e documentazione Javadoc per tutte le classi (dove specifico l'interfaccia delle classi, precondizioni, postcondizioni e invarianti). Nonostante le somiglianze con il RAD esso è un documento separato, e non una rifinitua di quest ultimo.
+        
+        \subsection{Convenzioni per l'ODD}
+            Ogni sottosistema in un sistema offre un servizio (descrive l'insieme di operazioni offerte dal sistema); l'operazione di un servizio si specifica con:
+            \begin{itemize}
+                \item \textbf{Signature}: Nome dell'operazione, lista di parametri con relativi tipi e tipo di ritorno
+                \item \textbf{Abstract}: Descrizione dell'operazione
+                \item \textbf{Pre}: Precondizione per chiamare l'operazione
+                \item \textbf{Post}: Postcondizione per descrivere lo stato dopo l'esecuzione dell'operazione
+            \end{itemize}
+            Per la specifica delle operazioni del servizio si usa Javadoc.
+            
+        \subsection{Packages}
+            Andiamo a mettere tutto insieme costruendo i \textbf{packages}, dove vado a mettere le classi. Idealmente occorre utilizzare un package per ciascun sottosistema.
+            
+            Come regola generale non dovremmo avere troppe classi in un solo package, con lo scopo di minimizzare l'accoppiamento massimizzando la coesione. Le classi che sono legate fra loro vanno nello stesso package, altrimenti in packages diversi. Anche i metodi non dovrebbero avere un numero eccessivo di parametri, sempre allo scopo di minimizzare l'accoppiamento.
+            
+            \paragraph{Euristiche per il packaging}. Ogni servizio del sottosistema è reso disponibile da uno o più oggetti interfaccia all'interno del package. Si inizia con un oggetto interfaccia per ciascun servizio del sottosistema, cercando di limitare il numero di operazioni dell'interfaccia (range indicativo 5-10). Se il servizio del sottosistema ha troppe operazioni, riconsideriamo il numero di sottosistemi in quanto questo potrebbe essere un buon indicatore del fatto che abbiamo accorpato due sottosistemi che avrebbero invece bisogno di essere separati.
+            
+    \section{Mapping models to code}
+        Vedremo ora in maniera sistematica come i costrutti UML vengono mappati su codice, avendo come rifetimento il linguaggio Java. Quindi, abbiamo visto il riuso nella scelta dei componenti (off-the-shelf, oggetti di soluzione addizionali e design patterns) e la specifica dei servizi dei moduli tramite la descrizione dettagliata di ogni class interface. Adesso ci concentriamo sul Mapping dei modelli sul codice, che trasforma il modello di object design in codice, tenendo conto di criteri di perfomance e cercando di migliorare la comprensibilità, e vedremo come mapparlo in codice sorgente e schemi di memorizzazione.
+        
+        Possiamo dividere le \textbf{attività di trasformazione e mapping} in \textbf{ottimizzazione} (teniamo in considerazione i requisiti di performance del sistema nell'implementazione del modello); \textbf{realizzazione delle associazioni} (mappandole a costrutti del codice sorgente, come riferimenti e collezioni di riferimenti); \textbf{mappare i contratti sulle eccezioni} (descriviamo il comportamento delle operazioni quando i contratti sono violati), anche se non è l'unico modo di mappare le violazioni delle precondizioni; \textbf{mappare i modelli delle classi su uno schema di memorizzazione} (in particolare su un DB relazionale).
+        
+        \paragraph{Applicare le trasformazioni a un modello} vuol dire cercare di modificare un modello per crearne un altro che vada incontro ad altri obiettivi (ad esempio semplificare, ottimizzare o rendere il modello più vicino alle specifiche). Ad esempio convertire un attributo in una classe, o aggiungere/togliere/rinominare classi, operazioni associazioni o attributi.
+        
+        Si ristruttura anche la gerarchia delle classi per migliorare l'ereditarietà. \textbf{Aumentare l'ereditarietà} significa riarrangiare e aggiustare classi e operazioni per prepararsi meglio all'ereditarietà; astrarre comportamenti comuni delle specializzazioni per portarli nella generalizzazione (quindi parto con l'individuazione di una superclasse, costruisco le relazioni e l'ereditarietà - le sottoclassi saranno specializzazioni di questa superclasse - e porto in alto gli attributi e le operazioni comuni alla sottoclasse). Questa operazione può essere fatta all'interno di un sottosistema e viene chiamata anche \textbf{Exrtact Superclass Refactoring} (se effettuata nell'ambito del codice). Innanzitutto ci si prepara all'inheritance: non solo creo la superclasse, ma mi assicuro che tutte le operazioni sono praticamente le stesse (potrei avere due classi diverse e chiamare due operazioni che fanno praticamente la stessa cosa ma in maniera diversa). Magari in certi casi alcune operazioni hanno meno argomenti, quindi va usato l'overloading. Devo poi rinominare gli attributi che hanno lo stesso significato ma hanno nomi diversi, o ancora posso usare funzioni virtuali e overriding per definire operazioni definite in una classe ma non in un'altra. Poi posso astrarre gli attributi e il comportamento comune (insieme di operazioni con la stessa signature) e creare una superclasse a partire da essi. L'ereditarietà comunque si applica per migliorare modularità, estensibilità e riusabilità.
+        
+        \paragraph{Ci sono diversi tipi di trasformazione} che possono essere applicati nell'OD:
+        \begin{itemize}
+            \item Il primo tipo è la \textbf{trasformazione di un modello}, per esempio per migliorare l'ereditarietà applichiamo una trasformazione sul modello a oggetti. Ciò ci porta da un modello nello spazio dei modelli a un altro modello sempre nello spazio dei modelli. Ma nell'OD abbiamo anche lo spazio del codice sorgente, dove iniziamo a implmentare e raffinare i nostri modelli.
+            \item La tecnica che si applica nel codice sorgente per modificarne un elemento restando tuttavia in quello stesso spazio viene chiamata \textbf{Refactoring}. Il codice sorgente e il modello dovrebbero comunque essere sincronizzati.
+            \item L'operazione che consiste nello scrivere codice basandosi sul modello viene chiamata \textbf{Forward Engineering}.
+            \item Viceversa, quando andiamo ad astrarre un modello partendo dal codice parliamo di \textbf{Reverse Engineering}.
+        \end{itemize}
+        
+        \subsection{Ottimizzazione}
+            L'attività di ottimizzazione è importante perché spesso il documento di analisi dei requisiti è semnaticamente corretto ma inefficiente se implementato direttamente. Le attività di ottimizzazione durante l'OD si possono dividere in:
+            
+            \subsubsection{Ottimizzazione dei cammini d'accesso}
+                \begin{itemize}
+                    \item Si aggiungono associazioni ridondanti per minimizzare il costo d'accesso di un attraversamento ripetuto di associazioni (si va a vedere quali sono le operazioni più frequenti, quanto spesso l'operazione è chiamata e si analizzano i sequence diagrams per vedere se un'operazione richiede molti attraversamenti).
+                    \item Si riduce la ricerca riducendo associazioni "molti a molti" o "uno a molti" in associazioni "uno a molti" o "uno a uno" quando possibile usando associazioni qualificate (con qualifiers).
+                    \item Si riarrangiano gli ordini di esecuzione, eliminando i dead path o invertendo l'ordine di alcuni loop che possono essere meno costosi.
+                    \item Spostare gli attributi coinvolti solo in operazioni di get e set in classi che chiamano questi attributi.
+                \end{itemize}
+                
+            \subsubsection{Collassare classi in attributi}
+                Questo porta alla trasformazione di oggetti in attributi. La scelta è fra implementare un'entità come attributo embedded all'interno di un'altra entità oppure come classe separata con associazioni ad altre classi (le associazioni sono più flessibili e rendono meglio i concetti del dominio applicativo, ma spesso introducono delle indirezioni che non sono necessarie).
+                    
+                Una buona indicazione di una classe che potrebbe essere collassata in un attributo è quando le uniche operazioni definite sugli attributi sono \texttt{get} e \texttt{set}. È una cosa che non va fatta in fase di analisi perché bisogna avere chiaro quali sono le responsabilità di ogni classe, in genere questa decisione va fatta quando l'implementazione è già cominciata e si vuole mantenere la consistenza tra modello e codice.
+                    
+            \subsubsection{Caching dei risultati di computazioni costose}
+                Si memorizza in attributi derivati, definendo classe o attributi che mantengono informazioni localmente. Il problema sorge quando gli attributi derivati (i cui valori dipendono da valori di base) devono essere aggiornati e sincronizzati. Ci sono 3 modi:
+                \begin{itemize}
+                    \item \textbf{Codice Esplicito (push)}: Quando cambia l'attributo indipendente viene settato un flag update ad OFF (ci indica che il valore derivato non è aggiornato), quindi ogni volta che voglio usare questo valore controllo questo flag per vedere se è aggiornato e nel caso non lo sia lo aggiorno. Il valore derivato viene dunque aggiornato solo quando necessario.
+                    \item \textbf{Active Value (notification, data trigger)}: Ogni volta che vengono modificate le variabili indipendenti, quella derivata viene aggiornata.
+                    \item \textbf{Computazione Periodica (pull)}: L'attributo derivato viene calcolato occasionalmente.
+                \end{itemize}   
+                    
+                Quale dei tre è meglio? Dipende dalla \textbf{frequenza} con cui vengono usati gli attributi indipendenti e quello derivato. In fenerale questi approcci non sono mutualmente esclusivi ma possono essere combinati, per non appesantire il sistema e mantenere coerenza fra i valori.
+                    
+            \subsubsection{Ritardare calcoli costosi}
+                Si usa un Proxy Design Patter... Bada.
+                    
+        \subsection{Come realizzare le Associazioni}
+            Devo cercare di essere più \textbf{uniforme} possibile e fare in modo che le decisioni vengano prese su \textbf{una associazione alla volta}. Come esempi di implementazione uniforme: Se ho un'associazione 1-a-1, utilizzo i nomi dei ruoli nell'associazione come attributi nelle classi, quindi li trasformo in references; Se ho un'associazione 1-a-molti la trasformo in un set; Se ho un'associazione qualificata la trasformo in una HashMap, perché l'attributo dell'associazione qualificata lo uso come chiave per accedere agli elementi dell'altra classe.
+            
+        \subsection{Come trasformare i contratti su eccezioni}
+            Alcuni linguaggi OO includono anche i vincoli, in modo da controllare i contratti e sollevare le eccezioni nel momento in cui il contratto è violato, ma Java non è uno di quelli, rendendo l'introduzione a questa sezione funzionalmente inutile, thanks Obama. In Java dobbiamo definire le classi eccezione, controllare il contratto usando i costrutti del linguaggio di programmazione e lanciare l'eccezione con la keyword \texttt{throw} seguito da un oggetto eccezione. Quindi per implementare una precondizione, il metodo che ha quella precondizione solleverà un'eccezione nel momento in cui essa viene violata (throw). Le classi client che usano quel metodo sanno che essa può essere sollevata ed eventualmente la gestirando con un blocco trt-catch.
+            
+            Per implementare un contratto, idealmente per ogni operazione di un contratto devo: controllare la precondizione prima di iniziare un metodo con un test che potrebbe sollevare un'eccezione se non è soddisfatta; controllare la postcondizione alla fine dei metodi e lanciare un'eccezione se il contratto è violato; controllare le invarianti quando si controlla la postcondizione; avere a che fare con l'ereditarietà incapsulando il codice di controllo per precondizioni e postcondizioni in metodi separati che possono essere chiamati dalle sottoclassi.
+            
+            Usare sistematicamente questo approccio assicura la verifica di ogni precondizione, postcondizione e invariante di ogni metodo, portando a un sistema robusto, ma questo approccio non è realistico per vari motivi: Sforzo di codifica eccessivo, introdurremmo difetti (chi ci dice che questi controlli non siano difettosi?), andremmo a offuscare il codice e avremmo problemi di performance. Quindi quello che non si fa è controllare il codice per postcondizioni e invarianti (di solito questa porzione di codice è ridondante rispetto a quello che implementa le funzioni della classe -in effetti un codice che controlla le postcondizioni è quasi identico a quello che implementa le funzionalità e non è di molto aiuto per scovare bug, esegue un compito che può essere meglio svolto dal \textbf{testing}-); in ogni caso è utile testare le \textbf{precondizioni} a livello di implementazione (testare e sollevare eccezioni, in modo che possano essere catturate e gestite), per postcondizioni e invarianti ci affidiamo invece ai casi di test. Se più metodi hanno le stesse precondizioni, il codice che le controlla può essere incapsulato in metodi separati. In più è opportuno commentare il codice che effettua i controlli.
+            
+        \subsection{Come mappare il modello delle classi su uno schema di memorizzazione}
+            Volendo potrei usare un database object-oriented, che supporta tutti i concetti della programmazione object-oriented, tuttavia non sono molto usati, quindi devo mappare il modello di cui dispongo su uno schema relazionale.
+            
+            Un databse relazionale è basato sull'algebra relazionale, i dati sono organizzati in tabelle, che hanno un certo numero di colonne e hanno tante righe quanti sono i record memorizzati all'interno di quella tabella. Usiamo il concetto di primary key (per identificare univocamente una voce in una tabella) e foreign key (attributo in una tabella in riferimento alla chiave primaria di un'altra tabella). Per manipolare le tabelle si usa SQL. Sono supportati dei vincoli, come l'integrità referenziale, cioè che certi riferimenti a un'altra tabella devono esistere.
+            
+            Come si mappa un modello a oggetti in un database relazionale? In maniera molto simile a quanto visto per i diagrammi ER: una classe è mappata su una tabella, gli attributi di una classe sono mappati su una colonna nella tabella, una associazione uno-a-molti è implementata con una chiave esterna, una molti-a-molti con una tabella separata, che ha associazioni 1-a-molti con le classi originali. I metodi non sono mappati. Se abbiamo inheritance ci sono due modi di mapparla: \textbf{Vertical mapping} (aggiungo una nuova tabella con il "ruolo" e l'id che si collega alle tabelle che ereditano), la cui ragione è una manutenzione più facile, siccome rispecchia meglio le classi all'interno del sistema, e \textbf{horizontal mapping} (si creano due tabelle indipendenti duplicando gli attributi della classe ereditata in tutte e due), la cui ragione è una performance migliore.
+            
+        \subsection{In conclusione}
+            È necessario documentare le trasformazioni per mantenere la consistenza tra modelli a oggetti e il source code e per mantenere aggiornati tutti i documenti impattati. Quindi ci sono diverse responsabilità:
+            
+            Il \textbf{core architect} prende le decisioni di design e sceglie le trasformazioni da applicare; L'\textbf{architecture liaison} si occupa di documentare i contratti associati alle interfacce dei sottosistemi e notificare i cambiamenti ai class users; lo \textbf{sviluppatore} si occupa di seguire le decisioni del core architect, applicando le trasformazioni, mappando gli object models al source code e mantenendo aggiornati i commenti al codice sorgente.
+            
+            \vspace{1mm}
+            Insomma chi ha fatto System Design si occupa della parte di Object Design legata alle interfacce tra i moduli, e lo sviluppatore implementa i moduli, prendendo decisioni su strutture dati e algoritmi da utilizzare, e effettuando forward engineering delle trasformazioni del modello a oggetti sul codice, e viceversa per il reverse engineering, andando a informare il liaison a tal proposito. Chiaramente le trasformazioni le posso fare sul sottosistema che sto realizzando, non posso andare a impattare su sottosistemi esterni, perché andrebbe a impattare sulle interfacce dei moduli.

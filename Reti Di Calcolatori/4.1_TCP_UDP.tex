@@ -1,0 +1,197 @@
+Lo strato di trasporto permette a due processi (più rispetto rispetto a due nodi) di comunicare. Per fare ciò la rete Internet si avvale dei protocolli UDP, TCP e SCTP, di cui vedremo i primi due.
+
+UDP (User Datagram Protocol) è il più semplice dei tre: nonostante non fornisca nessuna garanzia può essere utile in alcune applicazioni.
+
+TCP (Transmission Control Protocol) è molto più complesso ma fornisce delle garanzie sulla consegna dei dati.
+
+\section{Comunicazione fra processi}
+    Abbiamo visto come far comunicare due host (tramite lo strato di rete se sono sulla stessa rete e tramite lo strato di collegamento se sono su reti diverse). Ciò che ci interessa ora è far comunicare due processi, ossia due programmi in esecuzione, che si trovano su due reti qualsiasi. Abbiamo bisogno di una sovrastruttura rispetto agli strati di rete e collegamento che permetta una connessione più precisa.
+    
+    \subsection{Modello client/server}
+        Sebbene ci siano diversi modi di far comunicare due processi, il più comune è il \textbf{modello client/server}: in questo modello un processo offre servizi (il server) e uno ne usufruisce (il client).
+        
+    \subsection{Locale e remoto}
+        La comunicazione fra due processi, e quindi fra due host, coinvolge due nodi sulla rete. Spesso si fa distinzione fra il processo locale e quello remoto. Ovviamente tali ruoli sono interscambiabili e dipendono dal punto di vista.
+        
+    \subsection{Indirizzamento: numeri di porta}
+        Per inoltrare i pacchetti a uno specifico processo abbiamo bisogno di un meccanismo per differenziarli fra di loro: una sorta di parallelo di ciò che per gli host è l'indirizzo IP.
+        
+        Lo strato di trasporto risolve questo problema tramite i numeri di porta: ogni processo dell'host ne è dotato, e per rendere la comunicazione bidirezionale anche i processi dell'host sorgente ne sono dotati.
+        
+        Nel modello Internet i numeri di porta sono a 16bit, ossia compresi fra 0 e 65535. Il numero di porta scelto per il client è spesso casuale; ciò non può avvenire per il server, in quanto i client in tale caso non saprebbero come mettersi in collegamento con il processo interessato. Per questo per i server si usano delle porte ben note. Per esempio il servizio offerto da un server web ha quasi sempre porta 80.
+        
+        \subsubsection{IANA (Internet Assigned Number Authority)}
+            I numeri di porta vengono gestiti dall'associazione IANA.
+            \begin{itemize}
+                \item I numeri da 0 a 1023 sono \textbf{porte ben note}: questi sono definiti dall'associazione.
+                
+                \item I numeri da 1024 a 49151 sono \textbf{porte registrate}: non sono direttamente definiti dalla IANA ma possono essere registrati da utenti per evitare conflitti.
+                
+                \item I numeri da 49152 a 65535 sono \textbf{porte effimere}: esse non sono definite dalla IANA e non possono essere registrati.
+            \end{itemize}
+            
+        \subsubsection{Socket}
+            La combinazione di un indirizzo IP e di un numero di porta prende il nome di \textbf{socket}. Questo identifica univocamente un solo processo su un solo host.
+            
+    \subsection{Multiplexing e demultiplexing}
+        L'aggregazione dei dati spediti dai procesi sotto un unico indirizzo IP è una forma di multiplexing che sfrutta un'unica connessione per inviare dati provenienti da molteplici processi.
+        
+    \subsection{Comunicazioni con e senza connessione}
+        Lo strato di trasporto può offrire servizi senza connessione, come UDP, che non stabiliscono una connessione prima di iniziare a inviare i datagram e quindi non garantiscono la consegna e in nessun ordine preciso, o con connessione, come TCP, che invece forniscono meccanismi di controllo e garantiscono la consegna.
+        
+\section{Protocollo UDP}
+    Il protocollo UDP (User Datagram Protocol) è un protocollo inaffidabile e senza connessione. Non offre altro che l'indirizzamento dei processi attraverso il numero di porta oltre al servizio già offerto dal protocollo IP. Offre anche una minima capacità di rilevamento degli errori.
+    
+    Nonostante da una prima descrizione il protocollo UDP sembri quasi inutile, ha i suoi lati positivi: al costo di un overhead minimo consegna i dati ai processi. Questo è molto utile se vogliamo consegnare una piccola quantità di dati o dati di importanza non vitale. Se i dati vengono consegnati correttamente, come spesso succede, questo protocollo è più efficace rispetto alle controparti affidabili.
+    
+    \subsection{Datagram}
+        I pacchetti del protocollo UDP vengono chiamati \textbf{datagram} e hanno un'intestazione di lunghezza fissa di 8 byte. I campi di questa intestazione sono:
+        \begin{itemize}
+            \item \textbf{Numero di porta del mittente.} Campo di 16 bit che contiene un numero fra 0 e 65535.
+            
+            \item \textbf{Numero di porta del destinatario.} Stesso formato del precedente.
+            
+            \item \textbf{Lunghezza.} Anch'esso composto da 16 bit in unità di byte, massimo 65535 byte. Questa informazione non è strettamente necessaria siccome il datagram UDP sarà incapsulato in un pacchetto IP da cui si potrà calcolare la lunghezza del datagram UDP (Lunghezza pacchetto IP - Lunghezza intestazione IP). Questa informazione ridondante permette tuttavia di estrarre informazioni relative al datagram UDP senza accedere allo stato di rete.
+            
+            \item \textbf{Checksum.}
+        \end{itemize}
+        
+    \subsection{Funzionalità del protocollo UDP}
+        Come abbiamo detto questo protocollo è senza connessione. Ciò vuol dire che ogni datagram è slegato da ogni altro anche se fanno parte dello stesso messaggio logico.
+        
+        Non ci sono funzioni di controllo del flusso, ma abbiamo la checksum per una rudimentale rilevazione di errori. Tuttavia non possiamo capire se dei datagram sono stati persi o duplicati.
+        
+        \subsubsection{Code}
+            È previsto l'utilizzo di code per memorizzare i datagram in entrata ed uscita. Queste code sono legate al processo e vengono eliminate qualora il processo viene terminato.
+            
+            Il processo inserirà sulla coda di uscita i datagram da spedire. Il protocollo UDP le preleverà e spedirà. La coda potrebbe riempirsi, e in tale caso il sistema operativo chiederà al processo di attendere prima di inserire ulteriori dati nella coda.
+            
+            Quando un datagram viene ricevuto in entrata, si controlla se esiste una coda di entrata: se non esiste viene generato un messaggio di errore ICMP. Altrimenti si inserisce il datagram sulla coda di entrata di quel processo, a prescindere dal processo di provenienza. Anche queste code possono riempirsi, cosa che genera un messaggio ICMP di porta non raggiungibile da inviare al mittente.
+            
+    \subsection{Utilizzi del protocollo UDP}
+        Questo protocollo è utile per applicazioni che prevedono un semplice sistema di richiesta-risposta, oppure per applicazioni che implementano internamente un protocollo di gestione degli errori.
+        
+\section{Protocollo TCP}
+    Il protocollo TCP (Transmission Control Protocol) prevede l'utilizzo di porte, come il protocollo UDP, ma in più instaura una connessione virtuale prima dello scambio di dati e ha meccanismi di controllo di flusso ed errori.
+    
+    \subsection{Funzionalità del protocollo TCP}
+        Il protocollo TCP crea una connessione che permette di spedire un flusso di byte di lunghezza arbitraria. Il processo destinatario riceverà lo stesso flusso di byte. Possiamo vedere questo meccanismo come una pipe che collega i due processi.
+        
+        \paragraph{Buffer.} Siccome non è certo che i due processi agli estremi della pipe abbiano la stessa velocità di scrittura e lettura, vengono usati dei buffer per memorizzare sia i dati in entrata che quelli in uscita.
+        
+        Il buffer del mittente è diviso in tre zone:
+        \begin{itemize}
+            \item Le celle libere, in cui si possono scrivere byte.
+            
+            \item Le celle contenenti byte che sono stati scritti ma non ancora inviati.
+            
+            \item Le celle contenenti byte che sono stati inviati ma per i quali non è stato ricevuto un riscontro. Queste celle potranno essere liberate solo quando questo riscontro sarà ricevuto.
+        \end{itemize}
+        
+        Il buffer del destinatario è più semplice e diviso in sole due zone:
+        \begin{itemize}
+            \item Le celle libere che possono essere usate per memorizzare i byte.
+            
+            \item Le celle che hanno byte all'interno ma i quali devono essere ancora prelevati dal processo destinatario. Quando ciò avverrà queste celle entreranno nella prima categoria.
+        \end{itemize}
+        
+        \paragraph{Segmenti.} Siccome il protocollo TCP dovrà comunque usare il protocollo IP per spedire i suoi dati, dovrà dividere il flusso in segmenti a cui aggiungere un'intestazione TCP e che poi verranno incapsulati in pacchetti IP, per poi essere ricomposti nel flusso originale all'arrivo. Le operazioni di segmentazione e riassemblaggio sono compito del protocollo TCP e quindi trasparenti per entrambi i processi coinvolti.
+        
+        \subsubsection{Comunicazione bidirezionale}
+            Il protocollo TCP prevede una comunicazione full duplex. Questo implica chiaramente la presenza di quattro buffer.
+            
+        \subsubsection{Connessione}
+            Il protocollo TCP è con connessione e quindi ha una fase di instaurazione della connessione, una di scambio dei dati e una di eliminazione della connessione. È importante notare che questa connessione è solo virtuale e quindi i pacchetti IP potrebbero comunque essere persi, duplicati o consegnati fuori ordine.
+            
+            
+        \subsubsection{Affidabilità}
+            Questa non è offerta dal protocollo IP ed è quindi compito di TCP assicurarsi che i pacchetti vengano consegnati nell'ordine corretto.
+            
+    \subsection{Caratteristiche di TCP}
+        \subsubsection{Numerazione del flusso di byte}
+            Il protocollo TCP numera ogni byte. Il numero di sequenza è a 32 bit e parte da un valore casuale. Nell'intestazione di ogni segmento viene riportato il numero di sequenza del primo byte. Implicitamente questo numero definisce anche i numeri di sequenza di tutti gli altri byte del segmento.
+            
+            I byte di \textbf{riscontro} vengono inviati con la tecnica \textit{piggyback}, siccome la comunicazione è full duplex. I byte di riscontro sono cumulativi: indicano il valore che ci si aspetta dal prossimo byte di sequenza, quindi un byte di riscontro \textit{x} indica che tutti i byte fino a \textit{x-1} sono stati ricevuti.
+            
+        \subsubsection{Controllo del flusso}
+            Il destinatario può controllare la quantità di dati che possono essere spediti dal mittente. Ciò è molto utile per non sovraccaricare i buffer.
+            
+        \subsubsection{Controllo degli errori}
+            Questi meccanismi di controllo avvengono per ogni segmento. Chiaramente garantire l'assenza di errori in tutti i segmenti equivale a garantirla per tutto il flusso.
+            
+    \subsection{Connessione TCP}
+        La connessione TCP opera sul protocollo IP, quindi le funzionalità aggiuntive devono essere fornite dopo la ricezione dei pacchetti IP. Per esempio il protocollo TCP dovrà riordinare i pacchetti ricevuti in ordine sparso dal protocollo IP. La connessione è \textbf{virtuale}.
+        
+        La connessione è inoltre composta da tre fasi.
+        
+        \subsubsection{Instaurazione della connessione}
+            Il fatto che la comunicazione sia full-duplex significa che ognuno dei due processi deve fare richiesta e ricevere approvazione dall'altro prima di spedire i suoi dati.
+            
+            La fase di instaurazione di connessione nel protocollo TCP viene chiamata \textbf{three-way handshaking}. Innanzitutto un server deve dichiarare che è pronto a ricevere una connessione TCP, operazione chiamata \textit{apertura passiva}. Un client deve richiedere di instaurare una connessione TCP con un server che ha eseguito un'apertura passiva, e questa operazione si chiama \textit{apertura attiva}. A questo punto vengono scambiati tre segmenti:
+            \begin{itemize}
+                \item Il client invia il segment SYN, che serve a sincronizzare i numeri di sequenza, che partiranno dal numero dopo rispetto a quello contenuto nel segmento SYN.
+                
+                \item Un segmento SYN + ACK inviato dal server funge da sincronizzazione e conferma della ricezione del segmento precedente.
+                
+                \item Il client invia un ultimo segmento che è semplicemente un ACK del segmento precedente.
+            \end{itemize}
+            
+            \paragraph{Apertura simultanea.} È possibile anche se raro che due host effettuino contemporaneamente l'apertura attiva. In questo caso i segmenti SYN e i successivi SYN + ACK sono sufficienti a instaurare la connessione.
+            
+            \paragraph{Attacco SYN flooding.} Questo serio problema di sicurezza invia un grande numero di segmenti SYN a un server, mascherandoli con IP diversi e facendo finta quindi che arrivino da client diversi. Il server dovrà allocare le risorse per gestire queste connessioni e inoltre rispondere con segmenti SYN + ACK che verranno ignorati, causandone la rispedizione diverse volte prima di abbandonare il tentativo. Questo attacco DOS può anche causare un crash del server.
+            
+            Ci sono modi per alleviare questo problema, come accettare richieste solo da client o abilitati o rimandare l'allocazione delle risorse fino allo stabilimento della connessione, utilizzando i cookie.
+            
+        \subsubsection{Trasferimento dati}
+            Una volta instaurata la connessione entrambi gli host possono inviare dati e riscontri tramite piggyback.
+            
+            \paragraph{Bit di PSH.} Abbiamo detto che sia per dati in entrata che in uscita esistono dei buffer. I segmenti possono avere dimensioni variabili; per esempio un segmento può essere creato e spedito quando il buffer è quasi pieno. Questa flessibilità rende il protocollo più efficiente ma può provocare ritardi sia in partenza che in arrivo dovuti al passaggio di dati nei buffer.
+            
+            Per poter gestire correttamente casi in cui questi ritardi sono inaccettabili e c'è bisogno di un riscontro immediato, il protocollo TCP prevede l'utilizzo di un bit di controllo PSH. Questo causa, quando richiesto dal mittente, l'immediata creazione di un segmento riducendo drasticamente la permanenza nel buffer. Allo stesso modo il destinatario elaborerà e passerà quanto prima possibile al processo i segmenti ricevuti con questo bit.
+            
+            \paragraph{Dati urgenti.} Anche con il bit PSH i dati vengono consegnati in ordine. Il bit URG permette di violare questo ordine; un segmento con tale bit posto a 1 supererà gli altri segmenti. Questo può essere utile, per esempio se ci si accorge che una grossa mole di dati inviati è errata e quindi se ne vuole interrompere l'elaborazione.
+            
+        \subsubsection{Chiusura della connessione}
+            La chiusura della connessione può essere iniziata sia dal client che dal server, anche se questo secondo caso è di gran lunga meno comune. Ci sono due tipi di chiusura.
+            
+            \paragraph{Chiusura three-way.}
+            \begin{enumerate}
+                \item Il client richiede una chiusura e invia un segmento (che può anche contenere dati) con bit FIN posto a 1.
+                
+                \item Il protocollo TCP inoltra la richiesta al server e genera un bit FIN + ACK. Questo richiede la chiusura della connessione nell'altra direzione e riscontra correttamente il segmento precedente.
+                
+                \item Infine il client invia un ultimo segmento ACK per riscontrare correttamente il segmento di FIN + ACK appena ricevuto.
+            \end{enumerate}
+            
+            \paragraph{Mezza chiusura (o chiusura four-way).} Nella chiusura three-way ci si aspetta che la connessione venga chiusa immediatamente. A volte però il client potrebbe richiedere la chiusura perché non ha dati da inviare al server ma il server potrebbe ancora avere dati da inviare al client.
+            
+            In questo caso il client invia un segmento FIN al server e il server risponde con un segmento ACK. In questo momento la connessione è chiusa a metà: il client non può più inviare dati al server ma non è vero il viceversa. Quando anche il server avrà finito di inviare i propri dati invierà il suo segmento FIN al client, che dovrà essere riscontrato dal segmento FIN del client verso il server.
+            
+    \subsection{Controllo del flusso}
+        Il protocollo TCP utilizza l'algoritmo della finestra scorrevole per controllare il flusso. L'algoritmo è simile a go-back-N in quanto non ci sono riscontri negativi (NAK), ed è simile a quello della finestra selettiva in quanto i dati fuori ordine vengono conservati per essere successivamente riordinati.
+        
+        È importante notare che la finestra scorrevole del protocollo TCP, e quindi dello strato di trasporto, non ha come elementi i frame ma i singoli byte. Ha inoltre una dimensione variabile.
+        
+        È il destinatario a controllare la finestra, e può scegliere di renderne la dimensione 0 per non far inviare più dati al mittente. In questo caso il mittente può inviare un segmento di 1 byte che è un sollecito a riaprire la finestra.
+        
+        \subsubsection{Problema della finestra futile}
+            Con il rimpicciolirsi della finestra si creano segmenti più piccoli e quindi un sovraccarico dovuto alle intestazioni. Questo è conosciuto come problema della finestra futile. Si noti che in alcuni casi è necessario spedire segmenti piccoli, è semplicemente qualcosa che in generale si vorrebbe evitare.
+            
+            Per risolvere questo problema una prima idea è imporre una limitazione a TCP: spedire dati solo quando la finestra è sufficientemente grande o ci sono abbastanza dati da spedire. Questo è ragionevole ma non sempre fattibile: per esempio se il mittente non ha più dati da scrivere i pochi residui non verranno mai inviati. Una ulteriore soluzione potrebbe essere aspettare un certo lasso di tempo e poi spedire comunque i dati anche se sono pochi. Ora il problema diventa quanto tempo aspettare.
+            
+            L'algoritmo Nagle offre una soluzione elegante a questo problema. Se si possono creare segmenti grandi si spedisce subito perché il problema della finestra futile non si pone. Se ci sono pochi byte da inviare si usa la seguente regola: se ci sono dati non riscontrati non spedire; altrimenti spedisci subito, qualunque sia la dimensione del segmento. In poche parole se il mittente aspetta un riscontro, è in attesa; se non lo sta aspettando non può permettersi di aspettare.
+            
+    \subsection{Controllo degli errori}
+        Il protocollo TCP è affidabile: ciò significa che sia il mittente che il destinatario si aspettano che il flusso di byte venga consegnato in ordine, senza perdite e senza duplicazioni. Sono necessari meccanismi sia per rilevare che per correggere gli errori.
+        
+        \subsubsection{Somme di controllo}
+            Ogni segmento contiene una somma di controllo di 16 bit. Se tale somma non è rispettata il segmento viene considerato alterato e sarà cancellato, e quindi considerato come mai ricevuto.
+            
+        \subsubsection{Riscontri}
+            Questi vengono usati per confermare la ricezione dei byte. Possono essere ricevuti tramite piggyback o da soli.
+            
+        \subsubsection{Ritrasmissione}
+            La maniera di TCP per correggere gli errori è semplice: i dati vengono ritrasmessi. Questo avviene quando dopo un timeout non c'è riscontro o quando vengono ricevuti riscontri duplicati.
+            
+        \subsection{Segmenti fuori ordine}
+            In implementazioni precedenti di TCP i segmenti fuori ordine venivano cancellati (similmente al metodo go-back-N). In implementazioni successive questi vengono conservati nella speranza che arrivino i segmenti mancanti. In questo caso non possono essere consegnati al processo destinatario finché i frame mancanti non sono arrivati.

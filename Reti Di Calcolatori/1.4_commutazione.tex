@@ -1,0 +1,134 @@
+In una rete composta da molti dispositivi, ogni dispositivo deve essere capace di raggiungere ogni altro dispositivo. Questo può essere ottenuto tramite una topologia a mesh o stella, ma il costo di creazione e manutenzione di una tale rete sarebbe privativo.
+
+Una soluzione migliore sta nell'impiego dello switching. Ciò prevede di avere dei nodi terminali, che devono inviare e ricevere messaggi, e dei nodi switch connessi fra di loro, i quali smistano e reindirizzano i dati. Un nodo switch può essere connesso a un nodo terminale o essere usato solo per collegare altri switch. Andremo a vedere diversi tipi di reti a commutazione.
+
+\section{Reti a commutazione di circuito}
+    Una rete a commutazione di circuito è composta da diversi switch connessi tramite collegamenti fisici.
+    
+    Ogni switch ha $n$ collegamenti logici, uniti in un unico segnale tramite multiplexing. Ogni connessione può occupare un canale logico per ogni switch usato.
+    
+    In una prima fase viene instaurata la connessione, e ciò consiste nell'invio di una richiesta da un nodo A, che deve essere accettata da un ricevente B, ma anche da tutti i nodi coinvolti nello scambio. Una volta eseguito il trasferimento dei dati, la connessione può essere chiusa e il circuito può essere eliminato.
+    
+    Dobbiamo notare che durante la fase di prenotazione del circuito vengono prenotate delle risorse, che resteranno poi allocate fino alla fine della comunicazione. Inoltre i dati inviati non sono divisi in pacchetti ma sono bensì un flusso continuo.
+    
+    \subsection{Le tre fasi}
+        Come abbiamo visto, questo tipo di comunicazione richiede tre fasi: instaurazione della connessione, invio del messaggio e chiusura della connessione.
+        
+        Ciò che avviene inizialmente è che ogni punto, sia il canale mittente che gli switch coinvolti, devono prenotare un canale logico. Tutti questi canali logici compongono un cammino che va dal mittente al destinatario. Questa richiesta parte dal mittente e va al destinatario, e deve essere accettata e reinviata dal destinatario al mittente; solo a quel punto il trasferimento dei dati può iniziare. Dopo l'inivio dei dati come flusso, la connessione va chiusa. Per ottenere ciò viene inviato un apposito messaggio che passa da tutti i nodi coinvolti, e li informa che possono liberare le risorse dedicate a questo trasferimento.
+        
+    \subsection{Efficienza}
+        Il problema più grande della comunicazione a commutazione di circuito è che il canale di comunicazione resta aperto e attivo fino all'invio di una richiesta di chiusura. In alcune reti, come quella telefonica, questo non è un problema in quanto vengono inviati dati per tutto il periodo della connessione. Tuttavia in alcune reti questo potrebbe non accadere, e potremmo trovare una connessione aperta che non viene tuttavia utilizzata, il che sarebbe uno spreco di risorse.
+        
+    \subsection{Ritardo}
+        Nonostante l'efficienza non sia delle migliori, il ritardo è minimo, in quanto susseguentemente all'instaurazione della connessione, i dati non devono fermarsi su ogni switch, ma possono continuano a essere trasferiti con tutte le risorse dedicate fino alla fine della connessione.
+        
+\section{Commutazione di pacchetto}
+    In una rete a commutazione di pacchetto, i messaggi che i due nodi devono scambiarsi sono suddivisi in pacchetti di grandezza fissa o variabile.
+    
+    Per i pacchetti non c'è nessuna allocazione di risorse. Ciò vuol dire che nessuna risorsa è riservata per un certo collegamento. Lo smistamento avviene invece tramite una coda FIFO, quindi se un pacchetto giunge su uno switch, deve aspettare che tutti i pacchetti arrivati prima di lui vengano smistati.
+    
+    In particolare, in una rete a \textbf{datagram}, ogni pacchetto è trattato come un'entità indipendente, anche se logicamente è legato ad altri pacchetti coi quali fa parte di un unico messaggio. In questo tipo di rete non viene mantenuta nessuna informazione riguardante lo stato della connessione alla quale i datagram appartengono. Ne deriva che non è necessario instaurare una connessione. Il lato negativo è che i datgram potrebbero perdersi, essere duplicati o arrivare in un ordine diverso da come sono stati spediti. La gestione di queste problematiche avviene solitamente negli strati più alti della rete.
+    
+    \subsection{Tavole di routing}
+        Per compensare questa mancanza di informazioni, ogni switch dispone di una tavola di routing che contiene informazioni sull'instradamento del pacchetto in base alla destinazione che deve raggiungere. Le tavole di routing sono dinamiche, e vengono aggiornate periodicamente.
+        
+        \subsubsection{Indirizzo di destinazione}
+            Ogni pacchetto include un'intestazione che contiene, insieme alle altre informazioni, un indirizzo di destinazione, in base al quale, dopo la consultazione delle tavole di routing, il pacchetto viene instradato verso il prossimo switch. Questo indirizzo rimane invariato durante tutto l'attraversamento della rete.
+        
+    \subsection{Efficienza}
+        L'efficienza è migliore che in una rete a commutazione di circuito, in quanto le risorse vengono allocate dinamicamente e se c'è un ritardo fra la spedizione di un pacchetto e il prossimo, gli switch dedicati alla connessione non restano inutilizzati ma vengono utilizzati per altre connessioni.
+        
+    \subsection{Ritardo}
+        Nonostante non siano presenti fasi di instaurazione e cancellazione della connessione, ogni pacchetto potrebbe subire un ritardo variabile causato dall'attesa per essere instradato;
+        
+\section{Reti a circuito virtuale}
+    Una tale rete è una via di mezzo fra quelle viste in precedenza; ha caratteristiche in comune sia con una rete a commutazione di circuito che con una rete a commutazione di datagram.
+    
+    \begin{itemize}
+        \item Ci sono le fasi di instaurazione ed eliminazione della connessione.
+        
+        \item Le risorse necessarie possono essere allocate durante l'instaurazione della connessione oppure dinamicamente.
+        
+        \item Ogni pacchetto ha un indirizzo, che però ha valenza locale, ossia indica solo il prossimo switch.
+        
+        \item Come in una rete a commutazione di circuito, tutti i pacchetti seguono lo stesso percorso, stabilito durante l'instaurazione della connessione.
+    \end{itemize}
+    
+    \subsection{Indirizzamento}
+        I due tipi di indirizzamento utilizzati sono quello locale e quello globale.
+        
+        \subsubsection{Indirizzamento globale}
+            Ogni nodo della rete deve avere un identificatore unico per tutta la rete. Questo indirizzo globale viene usato solo per crearne uno locale.
+            
+        \subsubsection{Identificatori di circuito virtuale (VCI)}
+            Il numero che in pratica viene utilizzato per instradare i dati è il VCI; questo è un numero generalmente piccolo, che deve avere senso localmente in quanto deve identificare univocamente solo il prossimo switch.
+            
+    \subsection{Le tre fasi}
+        Come visto in precedenza abbiamo una fase di instaurazione della connessione, una di trasferimento dei dati, e una di chiusura della connessione.
+        
+        \subsubsection{Trasferimento dei dati}
+            Per trasferire un pacchetto dati tramite un cammino, ogni switch deve avere nella sua tavola di routing una riga relativa a quella specifica connessione. Ogni riga ha quattro informazioni, ossia porta e VCI in entrata e gli stessi ma da assegnare in uscita. 
+            
+        \subsubsection{Instaurazione del circuito virtuale}
+            Nella fase di instaurazione del circuito virtuale, un punto A che vuole instaurare una connessione con un punto B, deve inviare una richiesta opportuna e attendere una risposta.
+            
+            La parte di \textbf{richiesta} ha inizio con l'invio della suddetta dal nodo mittente al primo switch, che creerà una riga della tabella da riempire parzialmente; infatti sa la porta e il VCI di origine del pacchetto, ma non il VCI di uscita. Un processo analogo avverrà per ogni switch fino alla destinazione. Quando la richiesta giungerà a destinazione, il nodo destinatario deciderà se accettare la connessione, nel qual caso assegnerà un VCI al pacchetto, il quale verrà comunicato allo switch precedente. Questo permette al nodo destinazione di distinguere i dati ricevuti dai vari swtich. Così ha inizio la fase di \textbf{risposta}. Essa viaggia a ritroso decidendo i valori VCI in uscita, e complementato dagli indirizzi globali di sorgente e destinazione, così da permettere agli switch di riconoscere la connessione alla quale si fa riferimento. Una volta percorso a ritroso il percorso e completate tutte le righe, il trasferimento dati può iniziare tramite le righe apppena specificate.
+            
+        \subsubsection{Chiusura del circuito virtuale}
+            Quando il nodo A ha spedito tutti i dati, invia un pacchetto speciale al nodo B, il quale risponde con un pacchetto di conferma della chiusura che causa la cancellazione di tutte le righe relative a quella connessione.
+            
+    \subsection{Efficienza}
+        Come detto in precedenza, la prenotazione delle risorse può avvenire a priori o dinamicamente in base al carico della rete. Nel primo caso il ritardo dei pacchetti sarà uniforme, mentre nel secondo potrebbe variare. 
+        L'allocazione dinamica potrebbe non sembrare vantaggiosa, ma in realtà in una rete a circuito virtuale ciò permette comunque di controllare la disponibilità delle risorse.
+        
+    \subsection{Ritardo}
+        Abbiamo sempre un ritardo dovuto all'instaurazione della connessione e uno dovuto alla sua cancellazione. Tuttavia se le risorse sono allocate prima di iniziare il trasferimento, non abbiamo ritardi relativi ai singoli pacchetti.
+        
+\section{Struttura di uno switch}
+    \subsection{Struttura di uno switch per reti a circuito virtuale}
+        Vengono attualmente utilizzati switch a divisione di spazio e switch a divisione di tempo.
+        
+        \subsubsection{Switch a divisione di spazio}
+            In un tale switch i circuiti sono fisicamente separati, cioè ognuno occupa il proprio spazio.
+            
+            \paragraph{Switch a crossbar.} Questo tipo di switch connette $n$ input a $m$ output in una griglia, usando transistor nei punti di incrocio. Questo nella pratica è poco scalabile, in quanto servirebbero $n \times m$ punti di incrocio, di cui nella maggior parte dei casi solo il 25\% verrebbero usati contemporaneamente.
+            
+            \paragraph{Switch a più livelli.} Questo modello di switch risolve i problemi visti per gli switch a crossbar. In particolare combina degli switch a crossbar più piccoli in più livelli. In uno switch a 3 livelli il numero di punti di incrocio è
+            \begin{equation*}
+                2kN + k\left(\frac{N}{n}\right)^2
+            \end{equation*}
+            
+            che è molto minore del numero di punti di incrocio di uno switch crossbar singolo, ossia $N^2$.
+            
+            La drastica riduzione dei punti di incrocio si paga con una caratteristica negativa: lo switch a più livelli è \textbf{bloccante}. L'idea alla base è di condividere i punti di incrocio nel livello centrale, ma più piccolo è questo livello, più facilmente può essere saturato, e quindi bloccare nuove connessioni. Chiaramente in uno switch crossbar a livello singolo ciò non avviene perché ogni connessione ha il suo punto di incrocio, motivo per cui è poco desiderabile.
+            
+        \subsubsection{Switch a divisione di tempo}
+            Gli switch a divisione di tempo utilizzano la tecnologia del multiplexing a divisione di tempo. La più nota è chiamata scambio di intervalli temporali (TSI, time-slot interchange).
+            
+            \paragraph{TSI.} Questa struttura prende in input pacchetti dati da un TDM e li fornisce in output a un altro TDM. A collegarli c'è un TSI che dispone di una RAM da riempire con i dati da inoltrare, che verranno dati alla TDM di uscita in un ordine descido dall'unità di controllo della TDM.
+            
+        \subsubsection{Switch a divisione di tempo e spazio}
+            Possiamo osservare che gli switch a divisione di spazio sono istantanei, ma richiedono un grande numero di punti di incrocio per non essere bloccanti, mentre gli switch a divisione di tempo sono compatti ma implicano un ritardo intrinseco per ogni pacchetto di dati, in quanto devono essere scritti e poi prelevati da una RAM.
+            
+            È possibile combinare le due tecnologie per ottenere degli switch che sono ottimizzati sia temporalmente (ritardo) che spazialmente (punti di incrocio). Switch siffatti vengono chiamati TST (tempo-spazio-tempo). Abbiamo dunque un primo livello a divisione di tempo, dividendo gli input in diversi sotto-switch, che finiranno poi in un livello centrale a divisione di spazio, il cui output finirà in un livello finale a divisione di tempo.
+            
+    \subsection{Struttura di uno switch per reti a datagram}
+        Uno switch usato per una rete a datagram è diverso da quelli usati nelle reti ha commutazione di circuito. Esso ha solo quattro componenti: porte di input e output, un'unità di controllo e il congegno di commutazione.
+        
+        \subsubsection{Porte di input}
+            Queste eseguono funzioni dello strato fisico e di collegamento; convertono il segnale nei bit corrispondenti, rileva e corregge gli errori, eccetera. Contiene anche un buffer per memorizzare il pacchetto prima che questo sia instradato.
+            
+        \subsubsection{Porte di output}
+            Eseguono le stesse operazioni delle porte di input ma in ordine inverso: incapsula i dati in un frame che verrà poi tradotto nel corrispondente segnale da instradare sulla linea di uscita.
+            
+        \subsubsection{Unità di controllo}
+            Questa esegue le funzioni dello strato di rete; la tavola di routing in congiunzione con l'indirizzo di destinazione per ricavare la porta su cui instradare il pacchetto e l'indirizzo del prossimo switch (next hop).
+            
+        \subsubsection{Congegno di commutazione}
+            Il ruolo molto  importante di questo dispositivo è di spostare il pacchetto dati dalle porte di input alle porte di output: la velocità di tale operazione determina la dimensione delle code e il ritardo di ogni pacchetto. In passato venivano usati computer dedicati, ma col tempo ci si è spostati verso dispositivi specializzati, alcuni dei quali vedremo ora.
+            
+            \paragraph{Switch a crossbar.} Dispositivo più semplice, descritto in precedenza.
+            
+            \paragraph{Switch banyan.} Questo tipo di switch è in realtà composto da, per $n$ input, $\log_2n$ livelli da $\frac{n}{2}$ microswitch ciascuno. La scelta dell'uscita (binaria) presa per ciascuno di questi switch determinerà un numero che in binario corrisponde alla porta di uscita.
+            
+            \paragraph{Switch Batcher-banyan.} Un difetto del modello appena visto è la possibilità di collisioni anche per pacchetti non indirizzati verso la stessa porta di output. Si può risolvere questo problema ordinando i pacchetti in base alla porta di destinazione. In particolare si evita che due pacchetti destinati alla stessa porta vengano dati in input allo switch banyan contemporaneamente.

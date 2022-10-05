@@ -1,0 +1,181 @@
+\chapter{Testing}
+    \section{Introduzione al Testing}
+        Il \textbf{testing} consiste nel trovare le differenze tra il comportamento atteso, specificato tramite il modello del sistema, e il comportamento osservato nel sistema implementato. Dal punto di vista della modellazione, con il testing si cerca di mostrare che l'implementazione del sistema è inconsistente con il modello del sistema. Quindi, un po' controintuitivamente, lo scopo ultimo del testing è quello di \textbf{trovare} quanti più problemi possibili, che saranno poi corretti dagli sviluppatori.
+        
+        Questa attività dovrebbe idealmente essere svolta da sviluppatori non coinvolti nella realizzazione del sistema, in quanto, in contrasto con le attività precedenti, è distruttiva nei confronti del sistema, anziché costruttiva.
+        
+        \vspace{1mm}
+        I termini maggiormente utilizzati in questo contesto sono:
+        \begin{itemize}
+            \item \textbf{Affidabilità}: La misura di successo con cui il comportamento osservato nel sistema è conforme ad alcune specifiche del suo comportamento.
+            \item \textbf{Failure}: Qualsiasi derivazione del comportamento osservato rispetto al comportamento atteso.
+            \item \textbf{Fault (bug)}: La causa meccanica o algoritmica di uno stato di errore.
+        \end{itemize}
+        
+        Ci sono molti tipi differenti di errori e molti modi di far fronte a questi. Chiaramente, prima di dire che un comportamento "strano" sia un fault, un errore o un difetto, bisogna prima specificare il comportamento desiderato.
+        
+        Per far fronte a errori vari ed eventuali si possono adottare molte techinche, e noi adotteremo il testing, il quale non è mai buono abbastanza!
+        
+        In generale, per trattare gli errori si utilizzano i seguenti approcci:
+        \begin{itemize}
+            \item \textbf{Error Prevention}: Avviene prima del rilascio del sistema. Consiste nell'applicare buone tecniche di programmazione, usare versioni di controllo e applicare verifiche per prevenire bug.
+            \item \textbf{Error Detection}: Avviene mentre il sistema è in esecuzione: mediante Testing (creare failure in maniera pianificata), Debugging, Monitoring.
+            \item \textbf{Error Recovery}: Recuperare da un failure una volta che il sistema è stato rilasciato.
+        \end{itemize}
+        
+        Diamo ora delle definizioni di base per il Testing:
+        \begin{itemize}
+            \item \textbf{Errori}: Sono commessi da persone.
+            \item \textbf{Fault}: Un fault è il risultato di un errore nella documentazione software, nel codice, etc.
+            \item \textbf{Failure}: Un failure avviene quando si esegue un fault.
+            \item \textbf{Incident (episodio)}: Conseguenza di failure (l'occorrenza di una failure può o meno essere visibile all'utente).
+            \item \textbf{Testing}: Usare il software con casi di test allo scopo di trovare fault o di acquisire fiducia nel sistema.
+            \item \textbf{Caso di test (Test Case)}: Insieme di risultati attesi (oracoli) e di input che vanno a usare un componente con lo scopo di causare failures.
+            \item \textbf{Test Suite}: Insieme di casi di test.
+        \end{itemize}
+        
+        \subsection{Concetti di Testing}
+            Una \textbf{componente} è una parte del sistema che può essere isolata per essere testata: può essere un gruppo di oggetti, un sottosistema o anche più sottosistemi. Eseguire test case su una componente o su una combinazione di componenti richiede che essi siano isolati dal resto del sistema. Quando questo non è possibile a causa per esempio di parti mancanti del sistema, per eseguire i test andiamo a usare i \textit{Test Driver} e i \textit{Test Stub}.
+        
+            Un \textbf{Test Stub} è un'implementazione parziale di una componente che dipende dalla componente che andiamo a testare. In pratica simula le componenti chiamate dalla componente testata.
+        
+            Un \textbf{Test Driver} invece è un'implementazione parziale di una componente che dipende dalla componente testata. In pratica va a simulare il chiamante della componente testata.
+        
+            Questi due elementi ci permettono di eseguire test su un sistema ancora da implementare del tutto, accelerando i tempi di testing. Ovviamente Test Stub e Test Driver ben progettati richiedono un maggiore sforzo.
+        
+            \vspace{1mm}
+            Una volta che i test sono stati eseguiti e le failure rilevate, gli sviluppatore cambiano la componente per eliminare il fallimento individuato, tramite una \textbf{correzione}. Chiaramente, una correzione potrebbe introdurre nuovi fault, ed è per questo che utilizziamo tecniche come il \textbf{Testing di Regressione}: esso è la riesecuzione di tutti i test effettuati precedentemente successiva a un cambiamento.
+            
+            \paragraph{Alcune osservazioni} È impossibile testare in maniera esaustiva ogni modulo di un sistema non banale, a causa di limitazioni teoriche (problemi di arresto per esempio) o pratiche (tempi/costi proibitivi). Secondo Dijkstra, un test può solo verificare la presenza di bug, non la loro assenza, quindi un test ha successo se riesce a causare una failure.
+            
+            \subsubsection{Tecniche di Gestione dei Fault}
+            Il test delle componenti può essere effettuato mediante i seguenti:
+            \begin{itemize}
+                \item \textbf{Unit Testing (test di unità)}: Eseguito dagli sviluppatori su sottosistemi individuali, con l'obiettivo di confermare che il sottosistema in questione è codificato correttamente ed esegue le funzionalità intese.
+                \item \textbf{Integration Testing}: Eseguito da sviluppatori su gruppi di sottosistemi (collezioni di classi) ed eventualmente sull'intero sistema, con l'obiettivo di testare le interfacce fra i sottosistemi. 
+            \end{itemize}
+            
+            Il test del sistema, invece, viene effettuato tramite i seguenti:
+            \begin{itemize}
+                \item \textbf{System Testing}: Eseguito dagli sviluppatori sull'intero sistema, per verificare se esso rispecchia i requisiti (funzionali e globali).
+                \item \textbf{Acceptance Testing}: Valuta il sistema fornito dagli sviluppatori, viene eseguito infatti dai clienti. Ha l'obiettivo di verificare che il sistema rispecchia i requisiti del cliente e che è pronto all'uso.
+            \end{itemize}
+            
+        \subsection{Documentare il Testing}
+            Per minimizzare le risorse necessarie, il Testing deve essere gestito e pianificato. Per fare ciò, vengono usati i seguenti documenti:
+            \begin{itemize}
+                \item \textbf{Test Plan}: Si focalizza sugli aspetti manageriali del testing. In particolare, documenta gli scopi, gli approcci, le risorse e lo scheduling delle attività di testing. In questo documento sono identificati i requisiti e le componenti che devono essere testati.
+                \item \textbf{Test Case Specification}: Documenta ogni test. In particolare, contiene gli input, i driver, gli stub e gli output attesi dai test, così come i task che devono essere eseguiti.
+                \item \textbf{Test Incident Report}: Documenta ogni esecuzione, e in particolare i risultati reali dei test e le differenze con quelli attesi.
+                \item \textbf{Test Summary Report}: Elenca tutte le failure rilevate durante i test, che devono essere investigate. Da questo documento, gli sviluppatori analizzano e assegnano priorità a ogni failure e pianificano i cambiamenti da apportare al sistema e ai modelli. Questi cambiamenti possono introdurre nuovi test case e nuove esecuzioni di test.
+            \end{itemize}
+            
+            
+    \section{Tecniche di Testing di Unità}
+        Lo \textbf{Unit Testing} può essere eseguito in maniera informale, mediante la codifica incrementale, oppure mediante analisi statiche o dinamiche. L'\textit{analisi statica} avviene mediante: esecuzione manuale, leggendo il codice sorgente; walkthrough (presentazione informale ad altri); ispezione del codice (presentazione formale ad altri); tool automatici per controllare errori sintattici e semantici, e divergenze dagli standard di codifica.
+        
+        L'\textit{analisi dinamica} invece avviene mediante: \textbf{black-box testing} (per testare i comportamenti di input/output), \textbf{white-box testing} (per testare la logica interna del sottosistema o dell'oggetto), \textbf{testing basato sulle strutture dati} (i tipi di dati determinano i casi di test).
+        
+        In generale, il Testing di Unità nasce da tre motivazioni: Si riduce la complessità concentrandosi su una sola unit del sistema per volta, è più facile correggere i bug perché poche componenti sono coinvolte, ed è possibile testare più unità in parallelo. Le unità candidate per il test sono prese dal modello a oggetti e dalla decomposizione in sottosistemi (i sottosistemi devono essere testati dopo che ogni classe e oggetto al loro rispettivo interno è stato testato individualmente).
+        
+        \subsection{Black-Box Testing}
+            Si focalizza sul comportamento di I/O, senza preoccuparsi della struttura interna della componente. Se per ogni dato input siamo in grado di prevedere correttamente l'output, allora il modulo supera il test. Tuttavia, è quasi sempre impossibile generare tutti i possibili input, cioè tutti i test case. L'obiettivo diventa, quindi, quello di ridurre il numero di casi di test effettuando un partizionamento: si dividono le condizioni di input in \textbf{classi di equivalenza} e si scelgono i test case per ogni classe di equivalenza.
+            
+            Per selezionare le classi di equivalenza non ci sono regole, ma solo due linee guida:
+            \begin{itemize}
+                \item Se l'input è valido per un range di valori, si scelgono i test case da 3 classi di equivalenza: sotto il range, nel range e sopra il range.
+                \item Se l'input è valido solo se appartiene a un insieme discreto, si scelgono i test case da 2 classi di equivalenza: valore discreto valido, valore discreto non valido.
+            \end{itemize}
+            
+            Un'altra soluzione per scegliere solo un numero limitato di test case è giungere a conoscenza dei comportamenti interni delle unità da testare. (White-Box Testing).
+            
+        \subsection{Equivalence Class Testing}
+            Nasce dall'esigenza di avere un testing completo ma che eviti ridondanza. Le classi di equivalenza sono partizioni dell'input set. Tutto l'inpuit set viene coperto (ottenendo la \textit{completezza}) e le classi sono disgiunte (evitando la \textit{ridondanza}). I test case sono elementi di ogni classe di equivalenza. La difficoltà sta nello scegliere saggiamente le classi di equivalenza, individuando i più probabili comportamenti sottostanti.
+            
+            \vspace{1mm}
+            Parliamo ora di \textbf{weak} e \textbf{strong} equivalence class testing. Se prendiamo in considerazione una moltitudine di input che partecipano alla stessa operazione, come è realistico che sia, ci rendiamo conto che potrebbe non essere sufficiente andare a testare un valore per ogni input ma potremmo aver bisogno di prendere in considerazione le interazioni fra di essi.
+            
+            Ebbene è proprio questa la differenza fra questi due tipi di testing. Il \textbf{Weak Equivalence Class Testing} sceglie un valore da ogni classe di equivalenza, mentre lo \textbf{Strong Equivalence Class Testing} si basa sul prodotto cartesiano degli insiemi di partizione e testa tutte le possibili interazioni fra le classi.
+            
+            In generale, il Weak Equivalence Class Testing è appropriato quando i dati in input sono definiti in termini di range e insiemi di valori discreti.
+            
+        \subsection{Boundary Value Testing}
+            Abbiamo partizionato i domini di input in classi di equivalenza partendo dall'assunzione che all'interno della stessa classe ci sia la stessa probabilità di generare errori. Tuttavia, alcuni errori tipici di programmazione avvengono ai confini fra classi differenti. Su questo concetto focalizza l'attenzione questo tipo di testing, più semplice ma complementare alle precedenti tecniche di testing viste.
+            
+            se prendiamo per esempio in considerazione due variabili di input $x_1$ e $x_2$, sappiamo che esse sono comprese in degli intervalli. Ebbene, i valori che possono assumere rispettivamente sono il minimo, un po' più del minimo, un valore nominale, un po' meno del massimo e il massimo. Per convenzione questi valori si indicano con min, min+, nom, max- e max.
+            
+            Il Test Set si ottiene fissando una variabile al suo valore nominale e facendo variare le altre. Quindi una finzione di n variabili richiede $4n + 1$ test cases. Questa tecnica è abbastanza rudimentale, non prende in considerazione la nautra delle variabili e inoltre è sensibile al robustness testing: infatti non andiamo a testare valori non validi.
+            
+        \subsection{Worst Case Testing}
+            I valori limite (il testing precedente) partono dalla comune assunzione che le failure, la maggior parte delle volte, siano causate da un fault. Ma cosa succede se più di una variabile assume un valore estremo? Prendiamo in considerazione il prodotto cartesiano di {min, min+, nom, max-, max}. È chiaramente una tecnica più completa della precedente, ma molto più costosa: $5^n$ casi di test.
+            
+            È una buona strategia se le variabili fisiche hanno numerose interazioni, e se le failure sono molto costose. Il \textbf{Robust} Worst Case Testing è ancora più efficace, in quanto prende in considerazione anche valori oltre il massimo e sotto il minimo, ovviamente a un costo ancora maggiore.
+            
+        \subsection{White-Box Testing}
+            Questo tipo di testing si focalizza sulla completezza (copertura). Ogni statement nella componente è eseguito almeno una volta. Indipendentemente dall'input, ogni stato nel modello dinamico dell'oggetto e ogni interazione tra gli oggetti viene testata.
+        
+            Esistono quattro tipi di white box testing:
+            \begin{itemize}
+                \item \textbf{Statement Testing (test algebrico)}: Si testano i singoli statement.
+                \item \textbf{Loop Testing}: Provoca l'esecuzione del loop che deve essere saltato completamente. I loop possono essere eseguiti esattamente una volta o più di una volta.
+                \item \textbf{Path Testing}: Assicura che i path del programma siano eseguiti.
+                \item Branch Testing (testing condizionale): Assicura che ogni possibile uscita da una condizione sia testata almeno una volta.
+            \end{itemize}
+            
+        \subsection{Confronto fra testing White-Box e testing Black-Box}
+            Il numero di cammini da testare è potenzialmente infinito o comunque non realistico da esplorare completamente. Il White-Box Testing va spesso a testare ciò che è stato fatto piuttosto che ciò che dovrebbe essere fatto. Non individua quindi i casi d'uso mancanti. Il Black-Box Testing invece, ha la peculiarità di essere una potenziale esplosione combinatoria di casi di test (dati validi e non), e siccome va a testare le specifiche delle componenti è più adatto a rivelare comportamenti mancanti.
+            
+            È bene tenere a mente che comunque i due tipi di testing non sono mutualmente esclusivi e anzi, sono da considerarsi complementari.
+            
+    \section{Testing di Integrazione}
+        Quando i bug in ogni componente sono stati rilevati e fixati, le componenti sono pronte per essere integrate in sottosistemi più grandi. Il \textbf{Test di Integrazione} rileva bug che non sono stati rilevati durante il test di unità, focalizzando l'attenzione su un insieme di componenti che vengono integrate. Due o più componenti vengono integrate e analizzate,e quando dei bug sono rilevati, possono essere aggiunte nuove componenti per correggerli.
+        
+        Siamo quindi nella situazione in cui l'intero sottosistema è visto come una collezione di sottosistemi (insiemi di classi) determinati durante il system e l'object design. L'ordine in cui i sottosistemi vengono selezionati per il testing e per l'integrazione determina le strategie di testing che andremo ora a vedere.
+        
+        \subsection{Big Bang Integration}
+            Le componenti vengono testate individualmente e poi insieme come un unico sistema. Sebbene sia molto semplice, è costoso: se un test scopre una failure, è impossibile stabilire se è nell'interfaccia o all'interno di qualche componente.
+            
+        \subsection{Bottom Up Integration}
+            I sottisistemi al livello più basso della gerarchia sono testati individualmente. I successivi sottosistemi ad essere testati sono quelli che chiamano i sottosistemi testati in precedenza. Si ripete ques'ultimo passo finché tutti i sottosistemi non sono stati testati. Per il testing si utilizzano dei Test Drivers, che simulano le componenti dei livelli più alti che non sono ancora state integrate.
+        
+            Questo approccio non è buono per sistemi decomposti funzionalmente, poiché testa i sottosistemi più importanti solo alla fine, ma è utile per integrare sistemi object-oriented, real-time e con rigide richieste di performance.
+        
+        \subsection{Top Down Integration}
+            Testa prima i livelli alti della gerarchia o i sottosistemi di controllo e, successivamente, combina tutti i sottosistemi che sono chiamati da quelli già testati e testa la collezione risultate di sottosistemi. Ripete il tutto fino a quando tutti i sottosistemi non sono stati incorporati nel test. Per il testing vengono utilizzati Test Stub, che simulano le componenti dei livelli più bassi che non sono ancora state integrate.
+            
+            Il vantaggio di questo approccio è che i test case possono essere definiti in termini delle funzionalità del sistema. Tuttavia, scrivere gli stub può risultare difficile: devono consentire tutte le possibili condizioni da testare. Inoltre, è possibile che un grande numero di stub sia richiesto, soprattutto se il livello più in basso nel sistema contiene molti metodi.
+        
+        \subsection{Sandwich Testing}
+            Combina l'uso di strategie top-down e bottom-up. Il sistema è visto come avente 3 strati: Un livello \textbf{target} nel mezzo, uno sopra il target e uno sotto.
+            
+            Lo scopo del testing è quello di convergere al target. Se il nostro sistema ha più di 3 layer, potrebbe diventare non banale andare a identificare il target e i due livelli rispettivamente superiore e inferiore. Un modo potrebbe essere per esempio cercare di minimizzare il numero di stub e driver.
+            
+            Il vantaggio principale nell'utilizzare questo approccio è che i test dei livelli in alto e in basso possono essere eseguiti in parallelo. Il problema è che non vengono testati sottosistemi individuali del livello target in modo completo, prima dell'integrazione. La soluzione può essere: *rullo di tamburi*
+            
+            \paragraph{Strategia di Sandwich Testing Modificata}
+                Testa, in parallelo, il livello al top con stub per il target, il livello nel mezzo con driver e stub per i livelli rispettivamente superiore e inferiore, e il livello in basso con driver per il target. Inoltre, testa in parallelo il livello in alto che accede a quello nel mezzo e il livello in basso acceduto da quello nel mezzo.
+                
+    \section{System Testing}
+        Unit Testing e Integration Testing focalizzano l'attenzione sulla ricerca di bug nelle componenti individuali e nelle interfacce tra le componenti. Il \textbf{System Testing} invece, assicura che il sistema completo sia conforme ai requisiti funzionali e non. Le attività per questo testing sono: Structure Testing, Functional Testing, Pilot Testing, Performance Testing, Acceptance Testing, Installation Testing.
+        
+        L'impatto dei requisiti sul testing di sistema è pesante: più espliciti sono i requisiti, più facili sono da testare. La qualità degli use case determina la facilità del functional testing, mentre la qualità dei requisiti funzionali e non funzionali e dei vincoli determina la facilità del performance testing.
+        
+        \subsection{Structure Testing}
+            Essenzialmente è la stessa cosa di un testing White-Box. L'obiettivo è quello di coprire tutti i cammini nel system design: usa tutti i parametri di input e output per ogni componente, usa tutte le componenti e tutti i chiamanti (ogni componente è chiamato almeno una volta e tutte le componenti sono chiamate da tutti i possibili chiamanti), usa testing delle condizioni e delle iterazioni come il testing di unità.
+            
+        \subsection{Funcional Testing}
+            Essenzialmente lo stesso di un testing Black-Box. L'obiettivo è di testare le funzionalità del sistema, che viene trattato come una Black Box. I test case sono progettati a partire dal RAD e incentrati attorno ai requisiti e alle funzioni chiave (casi d'uso). Andiamo a istanziare casi d'uso per derivare casi di test (quindi praticamente creare scenari).
+            
+        \subsection{Performance Testing}
+            Si vuole spingere il sistema già integrato ai suoi limiti, con l'obiettivo di metterlo sotto stress e cercare di "romperlo". Bisogna testare come si comporta il sistema quando va in sovraccarico: possono essere identificati eventuali colli di bottiglia? Si porvano flussi di istruzioni non usuali, si testano grandi moli di dati.
+            
+        \subsection{Acceptance Test}
+            L'obiettivo è provare che il sistema è pronto per l'uso operativo. A tale scopo la scelta dei test è fatta dagli stakeholder, molti test possono essere presi da ltesting di integrazione e il test in sé è eseguito dal cliente e non dallo sviluppatore.
+            
+            La maggioranza dei bug nel software è individuata dal cliente dopo che il sistema entra in uso, perciò vengono introdotti due test addizionali:
+            \begin{itemize}
+                \item \textbf{Alpha Test}: Gli stakeholder usano il software negli ambienti degli sviluppatori. Il software è usato con un settaggio controllato, con gli sviluppatori sempre pronti a correggere seduta stante i bug.
+                \item \textbf{Beta Test}: Condotto negli ambienti degli sponsor, ma senza la presenza degli sviluppatori. Il software inizia a lavorare realisticamente nell'ambiente per il quale è stato progettato. Clienti potenziali potrebbero essere scoraggiati nel caso di scarse performance.
+            \end{itemize}
+            
+            C'è da notare che questi due ultimi test negli ultimi anni hanno cambiato sensibilmente il loro significato in alcuni mercati, per esempio non è raro vedere un Alpha Test aperto al pubblico nell'ambiente videoludico.

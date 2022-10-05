@@ -1,0 +1,128 @@
+Spesso abbiamo bisogno di far comunicare due computer in reti diverse, cosa per cui abbiamo necessità di identificarli globalmente. Precedentemente abbiamo parlato di indirizzi logici per questo scopo. L'indirizzamento logico usato per Internet viene prende il nome di indirizzamento IP. La versione 4 (IPv4) ha indirizzi composti da 32 bit, che sono saliti a 128 bit per la versione 6.
+
+\section{Indirizzi IPv4}
+    Un indirizzo IPv4 è un indirizzo di 32 bit che identifica in modo unico e universale un dispositivo connesso a internet.
+    
+    Sono \textbf{unici} nel senso che due nodi connessi a internet non avranno mai lo stesso indirizzo IP. Un nodo con \textit{m} interfacce avrà \textit{m} indirizzi IP.
+    
+    Sono \textbf{universali} nel senso che questo standard deve essere accettato e riconosciuto da tutti i dispositivi connessi a Internet.
+    
+    \subsection{Spazio di indirizzamento}
+        Lo spazio di indirizzamento è semplicemente l'insieme degli indirizzi utilizzabili. In generale per indirizzi a \textbf{n} bit questo numero è $2^n$. Quindi nel caso del protocollo IPv4 sono più di 4 miliardi, che dovrebbe indicare il numero di nodi che possono connettersi contemporaneamente a internet, ma questo non è esattamente vero perché come vedremo molti indirizzi sono "sprecati" a causa di restrizioni imposte sulla struttura degli indirizzi.
+        
+    \subsection{Notazione}
+        Gli indirizzi IPv4 essendo da 32 bit, vengono rappresentati con 32 bit, divisi in 4 insiemi di 1 byte per leggibilità. Questi byte sono talvolta rappresentati in decimale, quindi come quattro numeri che vanno da 0 a 255 separati da un punto.
+    
+    \subsection{Indirizzamento con classi}
+        Il progetto IPv4 inizialmente prevedeva la presenza di classi, che ora sono obsolete. Queste erano indicate con le prime cinque lettere dell'alfabeto e ognuna corrisponde a una parte dello spazio di indirizzamento. La classe veniva indicata dai primi bit dell'indirizzo ed erano così divise:
+        \begin{itemize}
+            \item Classe A: l'indirizzo inizia con 0, il primo byte va da 0 a 127.
+            \item Classe B: l'indirizzo inizia con 10, il primo byte va da 128 a 191.
+            \item Classe C: l'indirizzo inizia con 110, il primo byte va da 192 a 223.
+            \item Classe D: l'indirizzo inizia con 1110, il primo byte va da 224 a 239.
+            \item Classe E: l'indirizzo inizia con 1111, il primo byte va da 240 a 255.
+        \end{itemize}
+        
+        Il problema delle classi è la loro struttura rigida: ognuna è divisa in un numero fissato di blocchi, ognuno costituito da un numero fissato di indirizzi.
+
+            \begin{table}[h]
+                \begin{center}
+                    \begin{tabular}{cccc}
+                        \hline
+                        Classe & Numero di blocchi & Grandezza dei blocchi & Uso        \\ \hline
+                        A      & 128               & 16.777.216            & Unicast    \\
+                        B      & 16.384            & 65.536                & Unicast    \\
+                        C      & 2.097.152         & 256                   & Unicast    \\
+                        D      & 1                 & 268.435.456           & Multicast  \\
+                        E      & 1                 & 268.435.456           & Uso futuro \\ \hline
+                    \end{tabular}
+                \end{center}
+            \end{table}
+            
+        Chiaramente assegnare un blocco di classe A o B a una certa organizzazione potrebbe essere, e spesso è, uno spreco di indirizzi. Anzi è molto raro che un'organizzazione utilizzi esattamente il numero di indirizzi che gli sono stati assegnati. A maggior ragione gli indirizzi di multicast e per uso futuro sono stati grandemente sottoutilizzati.
+        
+    \subsection{Indirizzi di rete e di host}
+        Con l'inidrizzamento con classi A, B e C, l'indirizzo viene diviso in due parti: l'indirizzo di rete e quello di host. La lunghezza di queste due parti dipende dalla classe ma la somma fa sempre ovviamente 32 bit.
+        
+        Il semplice funzionamento è che l'indirizzo di rete indica il blocco di indirizzi, mentre quello di host l'indirizzo specifico all'interno del blocco. Dobbiamo specificare che un tale concetto non esiste per indirizzi di classi D ed E.
+        
+    \subsection{Maschere}
+        Nonostante la lunghezza degli indirizzi di rete ed host siano predeterminati, possiamo usare delle \textbf{maschere}, semplicemente composte da una serie di 1 (8, 16 o 24), seguiti da una serie di zeri (24, 16 o 8). La maschera viene semplicemente utilizzata per estrarre rapidamente da un indirizzo IP l'indirizzo di rete o quello di host. Questo può essere ottenuto tramite un AND bit a bit fra l'indirizzo e la maschera (per l'indirizzo di rete) e tramite un AND bit a bit fra l'indirizzo e il complemento della maschera (per l'indirizzo di host).
+        
+        Una possibile notazione per indicare le maschere è quella /\textit{n}, dove \textit{n} può essere 8, 16 o 24 e indica la dimensione di indirizzazione in bit dell'indirizzo di rete (equivalente al numero di uni della maschera). Questa notazione sarà anche utile per l'indirizzamento senza classi, che può essere visto come un caso più generale di quello con classi.
+        
+    \subsection{Supernetting}
+        Il numero di blocchi delle classi A e B è relativamente minore rispetto a quello della classe C. Per questo motivo, e siccome la richiesta di blocchi con un piccolo numero di indirizzi è andata diminuendo, gli indirizzi di classi A e B sono stati esauriti più velocemente. Una soluzione a questo problema è stato il \textbf{supernetting}.
+        
+        Con questa tecnica è possibile combinare indirizzi di rete contigui in una supernet. Quando ciò avviene la maschera dell'organizzazione viene decrementata per permettere la gestione di più indirizzi di host (che equivale a un ingrandimento della rete). Per esempio una maschera potrebbe passare da /24 a /22.
+        
+        Anche questo concetto si ricollega all'indirizzamento senza classi, che contempla maschere di lunghezze arbitrarie.
+        
+\section{Indirizzamento senza classi}
+    Questo sistema ha permesso di alleviare il problema dell'esaurimento di indirizzi dato dallo spreco di avere una divisione in classi. Rimuove infatti il concetto di classe nonostante gli indirizzi siano comunque divisi in blocchi.
+    
+    \subsection{Blocchi di indirizzi e maschere}
+        L'indirizzamento senza classi rimuove restrizioni dalla dimensione dei blocchi di indirizzi: questa può essere una qualsiasi potenza di due compresa fra 2 e $2^{31}$.
+        
+        Di conseguenza le maschere possono avere un qualsiasi formato /\textit{n} con $n$ che va da 2 a 31. Ne viene che il resto dei bit sono usati per gli indirizzi di host e quindi possiamo ricavarci la dimensione del blocco conoscendo la maschera, siccome la dimensione del blocco sarà $2^{32-n}$. Per esempio per una maschera del tipo /23, avremo un blocco di dimensione $2^{32-23} = 2^9 = 512$ indirizzi.
+        
+        Ora capiamo come l'indirizzamento con classi sia un caso speciale di quello senza classi.
+        
+        Inoltre è comodo specificare la maschera subito dopo l'indirizzo. Per esempio, 45.200.4.20/15. In generale abbiamo una notazione del tipo \textit{w.x.y.z/n}. Con questo sappiamo il primo, l'ultimo e la dimensione del blocco di indirizzi. Il primo possiamo ottenerlo sostituendo tutti 0 ai $32-n$ bit dell'indirizzo, mentre l'ultimo sostituendo agli stessi bit tutti 1. Siccome gli indirizzi assegnati a un blocco sono contigui, possiamo ricavarli tutti da queste informazioni.
+        
+        Nonostante possiamo indicare un blocco come \textit{w.x.y.z/n}, spesso per identificarlo si usa semplicemente il primo indirizzo.
+        
+    \subsection{Indirizzo di rete}
+        Un concetto molto importante è quello di indirizzo di rete: spesso il primo indirizzo del blocco assegnato a un'organizzazione è usato per identificare l'organizzazione stessa all'interno di Internet. I messaggi che devono essere spediti a un indirizzo del blocco passano per un router che identifica la rete, che si occuperà di smistarli all'indirizzo preciso.
+        
+    \subsection{Broadcast limitato}
+        Anche l'ultimo indirizzo della rete viene trattato in modo speciale. I messaggi consegnati a questo indirizzo vengono spediti a tutti i nodi della rete e l'indirizzo in sé viene chiamato indirizzo di broadcast limitato, in quanto è limitato alla rete \textit{w.x.y.z/n}.
+        
+    \subsection{Gerarchia a 2 o 3 livelli}
+        Gli indirizzi IP hanno una struttura gerarchica a due livelli, se non si utilizza il subnetting. Il primo livello va a identificare la rete, mentre il secondo identifica il dispositivo all'interno di quella rete.
+        
+        Tuttavia un'organizzazione a cui viene assegnato un blocco piuttosto grande di indirizzi potrebbe voler creare internamente un ulteriore livello della gerarchia, tramite il subnetting. In questo modo l'organizzazione viene vista come un'unica entità dall'esterno ma può gestire internamente le varie sottoreti. Fa ciò applicando delle maschere alla già presente maschera di rete. Per esempio una rete con maschera /27 potrebbe applicare maschere /28, /29 e /29 per identificare rispettivamente sottoreti da 16, 8 e 8 dispositivi.
+        
+        La struttura di indirizzamento senza classi non pone nessun limite sul numero di livelli gerarchici che si possono creare. Possiamo quindi avere \textbf{gerarchie a più di 3 livelli}. Possiamo vedere un fenomeno simile per gli ISP nazionali, che avendo un enorme numero di indirizzi a disposizione li divideranno per ISP regionali, locali ed eventualmente sottoreti.
+        
+    \subsection{Allocazione degli indirizzi}
+        Gli indirizzi vengono assegnati da un'organizzazione che opera a livello mondiale chiamata ICANN (Internet Corporation for Assigned Names and Addresses). Chiaramente non assegna gli indirizzi alle singole organizzazione ma dei blocchi agli ISP, che si occuperanno poi di distribuirli alle organizzazioni più piccole dividendoli in sottoblocchi. Questa tecnica viene chiamata \textbf{aggregazione degli indirizzi}: molti indirizzi vengono aggregati in un blocco che verrà gestito da un ISP.
+        
+\section{NAT (Network Address Translation)}
+    La tecnica di traduzione di indirizzi di rete viene usata per ridurre la necessità di indirizzi IP. Con questa tecnica un utente può usare un grande numero di indirizzi IP locali, e un solo indirizzo IP o un piccolo insieme di essi visibili esternamente. 
+    
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{lll}
+                \hline
+                CIDR & Blocco di indirizzi & Totale     \\ \hline
+                10.0.0.0/24      & Da 10.0.0.0 a 10.255.255.255              & $2^{24}$    \\
+                172.16.0.0/20      & Da 172.16.0.0 a 172.16.255.255         & $2^{20}$    \\
+                192.160.0.0/16      & Da 192.160.0.0 a 192.160.255.255     & $2^{16}$    \\
+            \end{tabular}
+        \end{center}
+    \end{table}
+    
+    Questi indirizzi possono essere usati da chiunque senza fare richiesta al CANN, basta l'assegnazione da parte dell'ISP. Nessun router collegato a internet accetterà pacchetti destinati a questi pacchetti, in quanto non possono essere resi visibili all'esterno. Chiaramente un router NAT può collegare la rete locale a Internet tramite programmi di traduzione degli indirizzi.
+    
+    \subsection{Traduzione degli indirizzi}
+        Quando i pacchetti escono dalla rete locale il router NAT sostituisce l'indirizzo di provenienza del pacchetto con il suo indirizzo pubblico. Allo stesso modo quando ci sono indirizzi in entrata, l'indirizzo di destinazione viene cambiato dall'indirizzo pubblico del router NAT all'indirizzo locale appropriato.
+        
+    \subsection{Tabella di traduzione}
+        La traduzione degli indirizzi in uscita è abbastanza semplice: il router NAT sostituisce semplicemente l'indirizzo privato sorgente con il proprio indirizzo pubblico.
+        
+        Il trattamento dei pacchetti in entrata è più delicato: non c'è nulla nel pacchetto che indichi la reale destinazione del pacchetto perché esso conosce solo l'indirizzo pubblico del router NAT. Questo problema viene risolto tramite le tavole di traduzione come descritto di seguito.
+        
+        \paragraph{NAT con un solo indirizzo IP.} Nella sua forma più semplice una tabella di traduzione ha solo due colonne: una per l'indirizzo privato e una corrispondente per l'indirizzo pubblico. Quando un pacchetto in uscita attraversa il router NAT scrive nella tabella l'indirizzo a cui è destinato, che verrà messo in corrispondenza con l'indirizzo privato di provenienza e riutilizzato quando un pacchetto proveniente dal corrispondente indirizzo pubblico si troverà in entrata al router NAT. In questo modo la comunicazione deve essere sempre iniziata da un indirizzo interno. Questo metodo viene usato da molti ISP. Chiaramente, e come ci si aspetta, un indirizzo interno non può fornire funzionalità server a un indirizzo esterno: questo ha senso se consideriamo gli indirizzi interni come i client di un ISP che utilizzano servizi come applicazioni o browser web.
+        
+        \paragraph{NAT con più indirizzi.} Nel caso in cui due nodi interni vogliano comunicare con un server esterno si creerebbe un'ambiguità e il router NAt non saprebbe a chi consegnare il pacchetto dati in entrata. La soluzione è definire un certo numero di indirizzi IP esterni. In questo modo possono essere gestito quel certo numero di connessioni verso un host esterno. Restano tuttavia due problemi: bisogna definire a priori questo numero e un singolo host interno non può usufruire di due connessioni verso uno stesso host esterno.
+        
+        \paragraph{NAT con indirizzi IP e porte.} Possiamo aggiungere delle porte locali e delle porte esterne alla tabella di traduzione per identificare univocamente i nodi. È chiaramente necessario che le porte siano uniche per ogni gruppo di nodi "nascosti" dietro un router NAT, per evitare ambiguità e non ricadere quindi in problemi precedenti.
+        
+    \subsection{NAT e ISP}
+        Un ISP può utilizzare le tecniche appena descritte per non consumare troppi indirizzi pubblici. Può infatti assegnare a un utente un indirizzo privato e poi provvedere a eseguirne la traduzione quando necessario.
+        
+    \subsection{Indirizzi speciali}
+        Un indirizzo \textbf{di rete} con tutti 0 significa "questa rete". Un indirizzo \textbf{di host} con tutti 0 significa "questo host". Le due cose possono essere combinate: un indirizzo con tutti 0 significa "questo host su questa rete".
+        
+        L'indirizzo 127.0.0.0/8 è detto indirizzo di \textbf{loopback}: i pacchetti dati inviati su questo indirizzo non vengono instradati ma vengono riconsegnati in entrati alla rete stessa che li ha inviati.

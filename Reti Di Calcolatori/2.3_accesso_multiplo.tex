@@ -1,0 +1,96 @@
+Nel capitolo precedente abbiamo assunto un canale dedicato fra i nodi di interesse che devono instaurare una connessione. Questo non sempre è assumibile. Se il canale non è dedicato abbiamo un livello sottostante a quello delle funzioni di controllo, ed è dedicato proprio ai protocolli di accesso al canale di comunicazione. Abbiamo quindi bisogno di un protocollo che permetta a tutti i nodi di accedere al mezzo trasmissivo senza tuttavia né monopolizzarlo né essere interrotti troppo presto.
+
+Possiamo dividere questi protocolli in tre categorie: ad accesso casuale, ad accesso controllato e a canalizzazione.
+
+\section{Accesso Casuale}
+    I metodi ad \textbf{accesso casuale} non danno alle stazioni il controllo del mezzo trasmissivo, bensì esse devono contendersi il suo utilizzo. Questo potrebbe causare collisione e quindi alterazione o distruzione dei pacchetti.
+    
+    \subsection{ALOHA}
+        Un metodo ad accesso casuale molto semplice è ALOHA. Esso è anche il precursore di molti altri metodi.
+        
+        \subsubsection{ALOHA puro}
+            Il metodo ALOHA puro prevede semplicemente la spedizione di pacchetti quando questi sono disponibili, per poi attendere un riscontro. Se i pacchetti vengono distrutti o perduti durante il transito, questo riscontro non arriverà e dopo la scadenza del relativo timeout il pacchetto d'interesse sarà semplicemente rispedito.
+            
+            Se due pacchetti si distruggono fra loro perché arrivano sul mezzo trasmissivo contemporaneamente, c'è il rischio che il timeout scada contemporaneamente e che quindi si verifichi lo stesso problema. Per questo il metodo ALOHA puro prevede che ogni stazione aspetti una quantità di tempo casuale prima di rispedire il proprio frame.
+            
+            Un parametro importante è il \textbf{tempo di vulnerabilità}. Questo indica il possibile intervallo di tempo in cui un pacchetto dati potrebbe trovarsi in conflitto. Per il protocollo ALOHA puro questo corrisponde a $2 \times T_{fr}$, dove $T_{fr}$ è il tempo necessario a spedire un frame. Questo avviene perché non abbiamo informazioni su quando un frame è stato o sarà spedito.
+            
+        \subsubsection{ALOHA a intervalli}
+            Questa modifica del protocollo ALOHA puro divide il tempo in intervalli di $T_{fr}$ ciascuno. Un frame può essere inviato solo all'inizio di un intervallo. Questo riduce il tempo di vulnerabilità a solo $T_{fr}$, effettivamente dimezzandolo.
+            
+    \subsection{CSMA (Carrier Sense Multiple Access)}
+        Questo metodo prevede che una stazione controlli lo stato del mezzo trasmissivo prima di spedire. Se c'è una trasmissione in corso è inutile, e anzi dannoso, spedire. Questo riduce la probabilità di collisione, ma non la elimina. Infatti se due stazioni controllano più o meno contemporaneamente lo stato del mezzo trasmissivo e trovandolo libero iniziano a spedire, una collisione potrebbe comunque avvenire.
+        
+        Il \textbf{tempo di vulnerabilità} per questo protocollo è uguale al tempo di propagazione, ossia il tempo richiesto al segnale per raggiungere tutte le stazioni.
+        
+        Cosa è necessario fare se si trova il mezzo di comunicazione occupato? Possiamo definire 3 comportamenti:
+        \begin{itemize}
+            \item \textbf{Metodo di 1-insistenza.} Questo è il metodo più semplice. Se la stazione trova il mezzo occupato non invia ma continua a controllarne lo stato e invia appena si libera. Questo causa la probabilità di collisione più alta in quanto più stazioni potrebbero trovare il mezzo libero allo stesso momento.
+            
+            \item \textbf{Metodo di non insistenza.} Quando una stazione trova il mezzo occupato, attende una quantità casuale di tempo prima di ritentare la spedizione. Questo metodo diminuisce le collisioni ma anche l'efficienza.
+            
+            \item \textbf{Metodo di p-insistenza.} Questo metodo mette insieme i pregi dei due visti precedentemente. Una stazione che vuole inviare sul mezzo lo controlla continuamente e quando lo trova libero invia ma solo con probabilità $p$. In caso contrario Aspetta al frame successivo e se è libero ricomincia dal passo precedente, altrimenti si comporta come se ci fosse stata una collisione.
+        \end{itemize}
+        
+    \subsection{CSMA/CD (Collision Detection)}
+        Questa versione dell'algoritmo CSMA aggiunge un algoritmo per la gestione delle collisioni. In questo metodo, una stazione controlla lo stato del mezzo trasmissivo dopo che ha spedito il frame per vedere se la trasmissione è avvenuta senza collisioni, nel qual caso la trasmissione si considera conclusa, altrimenti il frame viene rispedito.
+        
+        Dobbiamo imporre delle restrizioni sulle dimensioni dei frame. È infatti necessario che prima della spedizione dell'ultimo bit di un frame, la stazione sia in grado di rilevale la collisione e interrompere la trasmissione. Quindi la dimensione di un frame deve essere almeno tale che il suo tempo di trasmissione sia due volte il tempo di propagazione (il tempo necessario per far arrivare il messaggio alla seconda stazione più quello necessario per far tornare il messaggio di collisione alla prima).
+        
+        Ciò che accade in pratica è che la stazione controlla il \textbf{livello di energia} del segnale ce viaggia sul mezzo trasmissivo. Questo può essere \textit{nullo}, quando il canale è libero, \textit{normale} quando è occupato o \textit{anormale} quando c'è stata una collisione. In questo caso è il doppio.
+        
+    \subsection{CSMA/CA (Collision Avoidance)}
+        L'idea alla base del protocollo precedente è quella di rilevare collisioni misurando il livello di energia sul mezzo trasmissivo. Quando non c'è una collisione la stazione riceve solo il proprio segnale, mentre quando c'è essa riceve il proprio segnale e un secondo, quello con quale collide. Per rendere l'errore facile da rilevare il secondo segnale deve aggiungere una quantità di energia significativa a quello di base per essere rilevabile.
+        
+        In una rete cablata questo non è un problema in quanto se la rete non è piccola, avremo dei ripetitori che ripristinano l'energia del segnale, e questo sarà dunque quasi uguale a quando è stato spedito; quindi il segnale con interferenza avrà un'energia di quasi il doppio di un segnale normale. In una rete senza fili ciò non è banale in quanto il segnale perde energia viaggiando. Questo protocollo è stato progettato proprio per evitare le collisioni nelle reti senza fili, in quanto sarebbero difficilmente individuabili. Ciò avviene tramite strategie quali la \textbf{spaziatura fra i frame}, la \textbf{finestra di contesa} e i \textbf{riscontri}.
+        
+        \subsubsection{Spaziatura fra i frame}
+            Anche se il mezzo trasmissivo viene trovato libero, si aspetta una quantità di tempo chiamata \textbf{tempo di spaziatura fra i frame}, o IFS (\textit{Interframe spacing}) perché il mezzo potrebbe non essere davvero libero. Questo tempo di attesa permette ai bit di una eventuale altra stazione di raggiungere quella in attesa. Una volta terminato questo tempo si aspetta un ulteriore tempo indicato come finestra di contesa (descritta in seguito) per poi inviare. La dimensione maggiore o minore della IFS potrebbe anche essere usata per descrivere diverse priorità fra le stazioni o fra i singoli frame- una finestra minore corrisponde a una priorità maggiore.
+            
+        \subsubsection{Finestra di contesa}
+            Questa è divisa in intervalli. Una stazione che ha già aspettato il suo IPS sceglie un numero casuale di intervalli da aspettare prima di inviare il suo frame. Questa scelta è governata dall'algoritmo di backoff esponenziale. Ciò vuol dire che il numero di intervalli massimo raddoppia con ogni tentativo successivo.
+            
+            Se il canale è occupato il timer della finestra di contesa non viene azzerato ma viene temporaneamente messo in pausa finché il canale si libera.
+            
+        \subsubsection{Riscontri}
+            Nonostante queste precauzioni, collisioni e perdite di dati potrebbero comunque avvenire. Si utilizzano quindi timeout e riscontri per diminuirne la possibilità.
+            
+\section{Accesso controllato}
+    Con l'accesso controllato le stazioni si consultano a vicenda e una stazione non può inviare frame senza il consenso delle altre stazioni.
+    
+    \subsection{Prenotazione}
+        In questo metodo una stazione prima di inviare frame deve ovviamente prenotarsi. Il tempo viene diviso in intervalli e in ogni intervallo un frame di prenotazione composto da tante parti quante sono le stazioni precede i dati. Se una stazione deve inviare un frame in quell'intervallo lo segnala nel frame di prenotazione. Dopo il frame di prenotazione, tutte le stazioni che si erano prenotate inviano i propri dati. 
+    \subsection{Sondaggio}
+        Con questo metodo una stazione è designata come \textbf{primaria} e le altre come \textbf{secondarie}. Queste ultime seguono le istruzioni della primaria, mentre questa coordina le comunicazioni.
+        
+        Quando la stazione primaria vuole ricevere dati richiede se qualcuno ha dati da inviare e si prepara alla ricezione, fase chiamata \textit{funzione di ricezione}. Quando invece ha dati da inviare lo comunica alle stazioni secondarie le quali si prepareranno a ricevere dati, fase chiamata \textbf{funzione di selezione}.
+
+        \paragraph{Funzione di selezione}
+            Funzione che viene usata quando la stazione primaria ha dati da spedire. Siccome essa controlla il mezzo trasmissivo, se non sta ricevendo né spedendo dati sa che il mezzo trasmissivo è libero.
+            
+            Questo vuol dire che la stazione primaria potrebbe spedire dati in qualsiasi momento, ma le secondarie potrebbero non essere pronte a riceverli. Per questo la stazione primaria comunica la sua intenzione di spedire dati preventivamente e prima di inviarli aspetta un frame di ACK.
+            
+        \paragraph{Funzione di ricezione}
+            In questa fase la stazione primaria comunica che è pronta a ricevere dati e "chiede" alle stazioni secondarie chi ne abbia da inviare.
+            
+    \subsection{Testimone}
+        Nel metodo di \textbf{accesso con testimone}, le stazioni della rete sono organizzate in un anello logico. Ogni stazione ha quindi un predecessore e un successore. L'accesso al mezzo trasmissivo viene dettato dal possesso di un testimone, che viene passato alla stazione successiva quando la stazione corrente ha terminato di inviare i dati.
+        
+        Il testimone è in pratica un frame speciale. Quando una stazione lo riceve invia i suoi dati e poi inoltra il frame testimone. Se non ha dati da inviare invece passa semplicemente il testimone.
+        
+        Il testimone necessita di una gestione particolare. Deve esserci un tempo massimo del suo utilizzo. Va inoltre controllato che il testimone non venga perso, e vanno gestite eventuali priorità speciali.
+        
+        \subsubsection{Anello logico}
+            In una rete con accesso a testimone, le stazioni non devono essere necessariamente collegate fisicamente come un anello; l'anello deve esistere ma può essere logico, la cui implementazione dipende dalla struttura fisica della rete.
+            
+    \subsection{Canalizzazione}
+        In questo metodo la larghezza di banda di un collegamento viene condivisa fra le stazioni.
+        
+        \subsubsection{FDMA (Frequency Division Multiple Access)}
+            Nell'accesso multiplo a divisione di frequenza, la banda disponibile viene divisa fra le varie stazioni in funzione della frequenza: ogni stazione avrà accesso a una certa banda di frequenze. Inoltre queste non saranno allocate contiguamente per non creare interferenze. Siccome la banda viene assegnata per la durata della connessione, è possibile inviare un flusso continuo di dati.
+            
+        \subsubsection{TDMA (Time Division Multiple Access)}
+            In questo metodo invece, a ogni stazione viene assegnato un intervallo di tempo in cui può spedire dati. Il problema principale da risolvere in questo metodo è la sincronizzazione dell'inizio e della fine degli intervalli di tempo. Solitamente vengono usate delle specifiche sequenze di bit per indicare l'inizio dei vari intervalli.
+            
+        \subsubsection{CDMA (Code-Division Multiple Access)}
+            Nel metodo di accesso multiplo a codifica, il canale viene usato contemporaneamente da tutte le stazioni; ogni stazione codifica i suoi messaggi in maniera diversa in maniera che possano essere ascoltati in maniera selettiva quando necessario. Una possibile analogia è una stanza piena di persone che parlano in una lingua diversa per ogni coppia: possono anche parlare contemporaneamente, ma si può decidere di ascoltare una determinata lingua per "sintonizzarsi" sulla conversazione.

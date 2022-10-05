@@ -1,0 +1,39 @@
+\section{Introduzione}
+    Il concetto alla base delle macchine virtuali è di estrarre i componenti di un singolo computer in diversi ambienti di esecuzione diversi, dando così l'illusione che ogni ambiente sia in esecuzione su un computer diverso. Questo concetto è per certi affine a quello della strutturazione stratificata di un sistema operativo. Nel caso della virtualizzazione vi è uno strato che crea un ambiente in cui è possibile eseguire sistemi operativi o applicazioni.
+    
+    Alla base dell'intera gerarchia c'è l'\textbf{host}, che è l'hardware che gestisce le macchine virtuali, mentre il \textbf{gestore delle macchine virtuali}, o \textit{hypervisor} crea e gestisce le macchine virtuali fornendo un'interfaccia identica a quella dell'host. Ci sono poi i processi \textbf{guest}. A ognuno di questi viene fornita un copia dell'host. Di solito il processo guest è esso stesso un sistema operativo. Possono quindi esserci più sistemi operativi in esecuzione su un singolo hardware contemporaneamente, ognuno nella sua macchina virtuale.
+    
+    Vale la pena di notare come ciò renda la definizione di sistema operativo ancora più sfumata di quanto già non lo fosse.
+    
+\section{Storia}
+    Le macchine virtuali hanno fatto la loro comparsa sul mercato nel 1972. La virtualizzazione era fornita dal sistema operativo IBM VM, e ha stabilito dei concetti rilevanti ancora oggi.
+    
+    Una delle principali difficoltà riguardava i dischi. Era difficile eseguire più sistemi operativi di quanti fossero i dischi, e la soluzione arrivò sotto forma dei \textbf{minidisk}. Essi erano identici sotto ogni aspetto ai dischi fisici tranne che per dimensione, e il sistema li implementava allocando le tacce sui dischi fisici di cui il minidisk aveva bisogno.
+    
+    La virtualizzazione si è diffusa anche grazie a una sua definizione formale, che richiedeva i seguenti requisiti:
+    \begin{itemize}
+        \item \textbf{Fedeltà.} Un VMM deve fornire un ambiente per i programmi essenzialmente identico alla macchina originale.
+        \item \textbf{Prestazioni.} La perdita di prestazioni per i programmi in esecuzione nell'ambiente virtuale deve essere modesta.
+        \item \textbf{Sicurezza.} Il VMM è in completo controllo delle risorse del sistema.
+    \end{itemize}
+    
+\section{Vantaggi e caratteristiche}
+    I vantaggi della virtualizzazione e delle macchine virtuali sono molteplici. Innanzitutto potrebbe essere appetibile avere sistemi molto omogenei sullo stesso hardware, o addirittura sulla stessa macchina.
+    
+    Un'altra caratteristica molto importante riguarda la sicurezza: essendo i sistemi separati dall'host e separati fra loro, fungono essenzialmente da \textit{sandbox}. Se un virus dovesse infettare un sistema operativo, potrebbe causare danni al sistema stesso, ma difficilmente questi danni si estenderanno al sistema host o alle altre macchine virtuali.
+    
+    L'altra faccia della medaglia è che questo grado di isolamento può impedire la condivisione delle risorse. Una possibile soluzione è definire un volume del file system che permette la condivisione dei file. In alternativa è possibile creare una rete di macchine virtuali che possono comunicare tramite la rete fra di loro.
+    
+    Una caratteristica di molte macchine fisiche è la possibilità di ibernare, o \textit{sospendere} la macchina stessa, per riprenderne l'esecuzione in seguito. Le macchine virtuali portano questo concetto ancora più avanti e permettono di eseguire una copia dello stato della macchina, il quale può essere eseguito su qualsiasi altra macchina virtuale compatibile, permettendo l'effettiva creazione di \textbf{cloni}. Questa funzione può anche essere usata per creare backup e ripristinare stati precedenti della macchina, nel caso di un malfunzionamento fatale per esempio.
+    
+    L'utilizzo di macchine virtuali può anche aiutare gli sviluppatori di sistemi operativi. Di solito, la modifica di un sistema operativo è un'operazione delicata e pericolosa, e mentre avviene la modifica il sistema deve essere arrestato e restare inutilizzato. Utilizzare una macchina virtuale per apportare modifiche e testare il sistema operativo permette di spegnere la macchina solo quando le modifiche vanno applicate. Questo può essere utile nel caso di una macchina che fornisce servizi che hanno bisogno di un uptime costante.
+    
+    Un altro vantaggio di cui possono avvalersi gli sviluppatori è testare diverse versioni del proprio software su sistemi diversi senza necessariamente possedere hardware distinti. Questo vantaggio si estende anche al controllo qualità.
+    
+    Va considerato inoltre che gli strumenti di gestione di un VMM permettono a un amministratore di gestire molti più sistemi di quanto potrebbe fare senza il supporto di un VMM. In particolare, per esempio, il \textbf{templating} permette di avere un'immagine standard di un sistema operativo ed eseguirla su molte macchine virtuali. Ciò facilita anche backup, ripristino e controllo delle risorse.
+    
+    Un'altra funzione molto utile è la migrazione in tempo reale, o \textbf{live migration}, che permette di spostare l'esecuzione di un sistema operativo da un server fisico a un altro senza interruzione di servizio. Questo può essere molto utile se vogliamo liberare risorse sulla macchina iniziale, o se c'è bisogno di manutenere una macchina, in quanto possiamo spostare i suoi servizi su una seconda senza interromperli durante la manutenzione.
+    
+    Anche la distribuzione di applicazioni potrebbe giovare dalla diffusione di macchine virtuali, e in particolare dalla diffusione di uno standard. Potremmo infatti pensare di distribuire un sistema operativo con l'applicazione già preinstallata, e ciò, dato un formato standard per l'immagine, la renderebbe compatibile con qualsiasi macchina capace di supportare un VMM, e renderebbe anche l'aggiornamento e la manutenzione più standardizzati.
+    
+    Un'altra tecnologia resa disponibile in gran parte grazie alla virtualizzazione è il \textbf{cloud computing}, in quanto è possibile rendere disponibili risorse come memoria o CPU tramite Internet.

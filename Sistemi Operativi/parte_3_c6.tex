@@ -1,0 +1,64 @@
+\section{Introduzione}
+    Abbiamo visto come due processi possono essere eseguiti concorrentemente o in parallelo. Implementando uno scheduler dei processi possiamo interrompere un processo in qualsiasi punto della sua esecuzione per eseguirne un altro. Tramite il parallelismo, invece, possiamo eseguire due distinti flussi di istruzioni contemporaneamente su due core diversi. Andiamo ora a vedere come questo può portare a delle problematiche relative alla coerenza dei dati e all'accesso contemporaneo alle risorse.
+    
+    Il problema principale è quello della \textbf{race condition}, in cui il risultato di più operazioni dipende dall'ordine in cui vengono eseguite. Prendiamo per esempio due somme di una variabile contatore inizializzata a 0. Il risultato finale dovrebbe essere 2, ma potrebbe essere 1. Ciò avviene perché le due operazioni non sono atomiche, e può avvenire un fenomeno di \textit{interleaving}, in cui le istruzioni macchina si interlacciano e una delle due preleva la variabile dalla memoria mentre è in uno stato incoerente.
+    
+    Questo richiede una qualche forma di \textbf{sincronizzazione} e \textbf{coordinamento} dei processi, che spesso troviamo realizzate con dei \textit{lock} o rendendo \textbf{atomiche} le istruzioni che hanno necessità di lasciare le variabili su cui operano in uno stato coerente.
+    
+\section{Problema della sezione critica}
+    Ogni processo, all'interno della porzione di codice che esegue, ha una cosiddetta \textbf{sezione}, o \textbf{regione critica}. Questa è una porzione del codice in cui il processo modifica variabili comuni, accede a tabelle o file. In generale è una sezione in cui il processo esegue operazioni delicate, e alla quale dovrebbe accedere solo se nessun altro processo è nella sua sezione critica.
+    
+    Il problema risiede dunque nel trovare un modo di far accedere solo un processo alla volta alla sua sezione critica. Possiamo affiancare a questa sezione una \textbf{sezione d'ingresso} e una \textbf{sezione d'uscita}, che chiaramente aumentano il numero di controlli eseguiti sui processi.
+    
+    Una soluzione al problema della sezione critica deve soddisfare i tre seguenti \textbf{requisiti}:
+    \begin{itemize}
+        \item \textbf{Mutua esclusione:} Se un processo è in esecuzione nella propria sezione critica, nessun altro processo può essere in esecuzione nella sua sezione critica.
+        
+        \item \textbf{Progresso:} Se nessun processo è in sezione critica e qualche processo desidera entrare nella sua sezione critica, solo i processi che non sono nella regione critica possono partecipare alla scelta del processo che può entrare per primo nella propria sezione critica (in altre parole, il codice per decidere chi deve entrare nella regione critica non deve trovarsi in una regione critica); questa scelta non si può rimandare indefinitamente.
+        
+        \item \textbf{Attesa limitata:} Se un processo ha richiesto l'accesso alla sua sezione critica, non resterà in attesa per sempre; esiste un limite al numero di volte che può essere superato da altri processi.
+    \end{itemize}
+    
+    Un sistema operativo, senza le dovute precauzioni, è soggetto a molte race condition: lista di file aperti, ID dei processi, allocazione della memoria, etc. Sta allo sviluppatore del kernel prevenire questi problemi.
+    
+    Una soluzione semplice può essere implementata in un ambiente single core, rendendo impossibile l'interruzione di un processo in sezione critica. Questa soluzione non è praticabile in un ambiente multiprocessore in quanto disabilitare gli interrupt è un'operazione costosa.
+    
+    Le due categorie con cui abbiamo a che fare sono \textbf{kernel con e senza diritto di prelazione}. I kernel senza diritto di prelazione non permettono la prelazione di un processo in modalità sistema, rendendoli immuni a race condition.
+    
+    I kernel con diritto di prelazione invece permettono a un processo in modalità sistema di essere sottoposto a prelazione, esponendolo a race condition. Sono tuttavia spesso preferiti a causa delle maggiori prestazioni e prontezza nelle risposte.
+    
+\section{Supporto hardware per la sincronizzazione}
+    Possiamo definire soluzioni software al problema della sezione critica, come la soluzione di Peterson, ma queste potrebbero non funzionare su architetture moderne. Presentiamo quindi tre soluzioni hardware che possono essere usate per risolvere il problema o come primitive per costruire soluzioni più astratte.
+    
+    \subsection{Barriere di memoria}
+        Il modello di memoria è il modo in cui l'architettura di un computer determina quali garanzie relative alla memoria vengono fornite a un programma applicativo, e si divide in:
+        \begin{itemize}
+            \item \textbf{Fortemente ordinato.} Una modifica alla memoria su un processore è immediatamente visibile a tutti gli altri processori.
+            \item \textbf{Debolmente ordinato.} Le stesse modifiche potrebbero non essere immediatamente visibili.
+        \end{itemize}
+        
+        Le architetture dei computer offrono strumenti di sincronizzazione detti \textbf{barriere di memoria} per risolvere questo problema: quando un'operazione in barriera di memoria viene eseguita, il sistema operativo assicura che tutte le operazioni load e store vengano completate prima di passare all'operazione successiva.
+        
+        Le barriere di memoria sono considerate operazioni di livello molto basso e sono spesso usate solo dagli sviluppatori del kernel.
+        
+    \subsection{Istruzioni hardware}
+        Queste non sono altro che istruzioni atomiche; istruzioni a basso livello che, efficientemente, eseguono il loro intero contenuto assicurando di completarlo prima della prossima istruzione. In maniera tale sappiamo che eseguire un certo numero di istruzioni atomiche risulta in sequenzialità ma non in \textit{interleaving}.
+        
+    \subsection{Variabili atomiche}
+        Sono variabili speciali fornite dal sistema operativo che provvedono, per tipi di dati comuni come booleani e interi, operazioni atomiche. Sono spesso usate per aggiornare singoli valori condivisi, in quanto da sole non risolvono completamente il problema della race condition.
+        
+\section{Lock mutex}
+    Le soluzioni previamente illustrate sono complicate e solitamente inaccessibili a sviluppatori di applicazioni. Vengono invece impiegate soluzioni software come il \textbf{lock mutex} (abbreviazione di \textit{mut}ual \textit{ex}clusion), che garantisce la protezione di sezioni critiche e la prevenzione di race condition.
+    
+    In pratica, un processo deve acquisire un \textit{lock} al suo ingresso nella sezione critica e rilasciarlo all'uscita. Il \textit{lock} ha inoltre una variabile booleana che indica se è disponibile. Le chiamate per acquisire e rilasciare il lock devono essere eseguite in maniera atomica, e qui rientrano in gioco le istruzioni illustrate previamente.
+    
+    Un problema è che i processi sono in attesa attiva (\textit{busy wait}) mentre aspettano che il lock venga rilasciato, e questo spreca cicli di clock altrimenti utilizzabili in maniera produttiva. Questo è anche chiamato \textbf{spinlock}.
+    
+\section{Semafori}
+    Un \textbf{semaforo} è una variabile intera a cui si può accedere solo tramite due operazioni atomiche predefinite: \texttt{wait()}, che esegue un'attesa attiva e in seguito diminuisce la variabile S, e \texttt{signal()}, che incrementa la variabile S.
+    
+    È comune fare distinzione fra \textbf{semafori contatore}, il cui valore è un numero intero, e \textbf{semafori binari}.
+    
+    I semafori binari sono usati solitamente in sostituzione di lock mutex, mentre i semafori contatore sono utilizzati quando ci sono solo un numero limitato di esemplari disponibili di una certa risorsa. Il contatore viene inizialmente inizializzato al numero di esemplari disponibili. Un processo che richiede la risorsa chiama \texttt{wait()}, decrementando il contatore, e quando la rilascia chiama \texttt{signal()}, aumentandolo. Quando il contatore raggiunge zero, vuol dire che tutte le risorse sono occupate, e i nuovi processi che ne richiedono devono aspettare la disponibilità.
+    
+    Per risolvere il problema attivo si può invece associare a ogni semaforo una lista di \textbf{processi in attesa}, posti in stato \textit{waiting}, che verranno "risvegliati" quando verrà riscontrata disponibilità nel semaforo (in pratica l'operazione \texttt{signal()} preleva un processo da questa lista e lo attiva). Questo tipo di implementazione può portare il semaforo ad avere un valore negativo, dove il valore assoluto del contatore rappresenta il numero di processi in attesa.

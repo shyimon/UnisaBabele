@@ -1,0 +1,177 @@
+Questo capitolo descrive i meccanismi che permettono ai pacchetti IP di arrivare alla loro effettiva destinazione finale.
+
+\section{Consegna diretta e indiretta}
+    Lo strato di rete gestisce la consegna dei pacchetti, la quale avviene tramite lo strato fisico. La consegna è \textbf{diretta} quando chi invia e chi riceve il pacchetto sono sulla stessa rete. È invece \textbf{indiretta} quando questi sono su reti diverse.
+    
+    Le due situazioni hanno chiaramente implicazioni diverse. Se il prossimo hop consta di una consegna diretta basterà consegnare il pacchetto all'indirizzo indicato. Altrimenti bisognerà trovare una route ottimale per consegnare il pacchetto al prossimo nodo (
+    router).
+    
+\section{Inoltro}
+    Questa operazione avviene quando si deve effettuare una consegna indiretta. Il nodo che effettua l'inoltro dovrà passare il pacchetto al prossimo router, e lo fa in maniera ottimale consultando le sue tavole di routing.
+    
+    \subsection{Tavole di routing}
+        Ogni router deve essere dotato di una tavola di routing. Questa contiene informazioni necessarie all'instradamento di un pacchetto verso la destinazione. Siccome non si sa quale pacchetto si riceverà e verso che destinazione, vanno mantenute informazioni relative a tutte le possibili destinazioni finali. Una prima intuizione ci dice che potremmo mantenere tutti i percorsi ottimali per tutte le possibili destinazioni, ma per una rete grande come Internet questa strada è impraticabile.
+        
+        \subsubsection{Next-hop}
+            Per ridurre le dimensioni delle tavole di routing possiamo pensare di inserire solo informazioni relative al prossimo nodo da raggiungere. Questa tecnica viene chiamata \textbf{next-hop}.
+            
+        \subsubsection{Aggregazione}
+            Un altro metodo per ridurre le dimensioni delle tavole di routing è considerare la destinazione finale come l'intera rete. Infatti sappiamo che se facciamo arrivare un pacchetto sulla rete a cui è destinato, al passo successivo sarà consegnato al nodo preciso che si intende raggiungere.
+            
+        \subsubsection{Route di default}
+            Nonostante le accortezze appena viste, le tavole di routing sarebbero troppo voluminore. Per questo viene conservata una piccola collezione di next-hop nelle tavole di routing, mentre per gli altri indirizzi viene definita una route di default.
+            
+    \subsection{Operazione di inoltro}
+        Ciò che avviene durante l'inoltro è innanzitutto l'estrazione dell'indirizzo di destinazione del pacchetto preso in esame. Successivamente andrà estratta dalla tavola di routing la rotta per questo indirizzo. Assumendo di utilizzare l'indirizzamento senza classi non è possibile dedurre la maschera dell'indirizzo di destinazione del pacchetto. Per ovviare a questo problema è necessario inserire tale informazione nella tavola di routing. 
+        
+        \subsubsection{Aggregazione degli indirizzi di rete}
+            La tecnica usata per aggregare indirizzi della stessa rete può essere usata per aggregare reti che hanno in comune il next-hop.
+            
+        \subsubsection{Corrispondenza con la maschera più lunga}
+            Ordinare gli indirizzi delle tavole di routing dando priorità alle maschere più lunghe risolve il problema di reti teoricamente aggregabili ma lontane geograficamente.
+        
+        \subsubsection{Routing gerarchico}
+            Abbiamo previamente detto che Internet ha una struttura abbastanza gerarchica (FrAtTaLe lolol kek). Possiamo usare questa struttura per strutturare le tavole di routing in maniera da farne decrescere enormemente le dimensioni.
+            
+            Strutture più grandi (ISP nazionali) possono avere tavole di routing approssimative che instradano correttamente i pacchetti verso il prossimo livello gerarchico (il corretto ISP regionale per esempio). Questo prossimo livello avrà tavole di routing più dettagliate che ripetono il processo.
+            
+        \subsubsection{Routing geografico}
+            Questa tecnica identifica gli indirizzi in base alla loro locazione geografica e funge da primo livello grossolanamente gerarchico: una tavola di routing situata in Nord America avrà un solo indirizzo che indica l'interezza dell'Europa.
+            
+            Gli indirizzi IPv4 non hanno questa capacità ma gli IPv6 possono identificare geograficamente un indirizzo.
+            
+    \subsection{Tavole di routing}
+        Descriviamo ora le tavole di routing. Ogni nodo ne possiede una che descrive il prossimo migliore next-hop per ogni possibile destinazione finale. Le tavole possono essere statiche o dinamiche.
+        
+        \subsubsection{Tavole di routing statiche}
+            Una tale tavola deve essere aggiornata manualmente; è concepibile usarla in reti piccole e che subiscono pochi cambiamenti o per motivazioni sperimentali.
+            
+        \subsubsection{Tavole di routing dinamiche}
+            Queste sono tavole che possono essere aggiornate manualmente tramite protocolli appositi (RIP, OSPF, BGP) ogniqualvolta la topologia di internet subisca un cambiamento.
+            
+        \subsubsection{Formato delle tavole di routing}
+            Abbiamo già detto che il numero di colonne minimo per le tavole di routing è 4. Questo non esclude la presenza di altre colonne che anzi è piuttosto comune. Le colonne sono quanto segue:
+            \begin{enumerate}
+                \item \textbf{Maschera.} La maschera di rete che si deve considerare.
+                
+                \item \textbf{Indirizzo di destinazione.} Può essere di un nodo o di una rete, secondo aggregazione.
+                
+                \item \textbf{Indirizzo del next-hop.}
+                
+                \item \textbf{Interfaccia.} L'interfaccia sulla quale il pacchetto deve essere inoltrato.
+                
+                \item \textbf{Flag.} Ha fino a 5 segnalatori, che possono indicare l'up del next hop, se il next hop è in un'altra rete e altre informazioni.
+                
+                \item \textbf{Contatore.} Il numero di utenti che in quel momento stanno usando quel percorso.
+                
+                \item \textbf{Pacchetti spediti.} Il numero di pacchetti che sono stati spediti alle destinazioni specificate in questa riga.
+            \end{enumerate}
+        
+\section{Protocolli di routing}
+    Un protocollo di routing svolge l'importante compito di aggiornare le tavole di routing qualora ce ne fosse bisogno, ossia quando avviene un cambiamento nella topologia della rete/interrete.
+    
+    Un protocollo di routing è un'insieme di regole che permette ai router di avere informazioni sugli altri router in maniera da conoscerne i cambiamenti.
+    
+    \subsection{Ottimizzazione}
+        Un router è sempre connesso almeno a due reti, ma tipicamente è connesso a molte più reti. La scelta di dove instradare il pacchetto dovrebbe essere orientata dall'ottimalità del percorso verso la destinazione.
+        
+        Solitamente si assegna un costo al passaggio del pacchetto attraverso le reti. Un percorso ottimo minimizza tale costo totale. Alcuni protocolli semplici (come il RIP) assumono che tale costo sia uguale per ogni passaggio, e quindi la somma dei costi diventa semplicemente il numero degli hop. Altri protocolli, come OSPF, definiscono diversi pesi per il passaggio del pacchetto attraverso diversi mezzi: per esempio l'ottimizzazione del throughput potrebbe preferire una rete satellitare rispetto a una in fibra ottica. Ancora, altri protocolli potrebbero definire il costo con metriche completamente diverse, per esempio per motivazioni amministrative; immaginiamo un ISP che non vuole che i propri pacchetti passino attraverso reti gestite da ISP concorrenti.
+        
+    \subsection{Routing con intradominio e interdominio}
+        La rete Internet odierna è così grande e complessa che non può essere gestita da un solo protocollo. Si parla infatti di AS (Autonomous Systems), che sono reti o insiemi di reti che funzionano separatamente da altri AS. Spesso un AS coincide con un'organizzazione o ISP.
+        
+        Il routing interno a un sistema autonomo viene detto \textbf{routing intradominio}. Quello che avviene fra sistemi autonomi invece, \textbf{routing interdominio}. Chiaramente all'interno di un AS può essere scelto qualsiasi protocollo di routing, mentre per il routing interdominio il protocollo deve essere comune per tutti gli AS.
+        
+        Descriveremo tre protocolli di routing basati su concetti diversi:
+        \begin{itemize}
+            \item Il protocollo \textbf{RIP} (Routing Information Protocol) è basato sul vettore delle distanze.
+            
+            \item Il protocollo \textbf{OSPF} (Open Shortest Path First) invece sullo stato dei collegamenti.
+            
+            \item Infine il protocollo \textbf{BGP} (Broader Gateway Protocol) è basato sul vettore dei cammini.
+        \end{itemize}
+        
+    \subsection{Routing basato sul vettore delle distanze}
+        In un tale protocollo di routing il costo del passaggio di un pacchetto attraverso una rete dipende dalla rete. In questo protocollo ogni nodo ha dei vettori di costi minimi per raggiungere ogni altro nodo, insieme a informazioni per instradare i pacchetti verso tali nodi (il prossimo hop).
+        
+        Questo avviene in una situazione finale e con topologia statica. \textbf{Inizialmente} le tavole non sono ottime; ogni nodo sa la distanza rispetto a quelli adiacenti e considera quelli non direttamente raggiungibili come a distanza infinita.
+        
+        Alla base del protocollo c'è lo \textbf{scambio di informazioni} fra nodi direttamente collegati. Se i nodi adiacenti condividono le informazioni delle proprie tavole di routing si "aiutano" a vicenda a scoprire la topologia dell'intera rete. Non tutte le informazioni sono tuttavia utili; alcune sono già conosciute per il vicino. Non sapendo quali informazioni sono utili e quali no, la soluzione più banale è spedire l'intera tavola di rotuing e lasciare alla discrezione del vicino la selezione delle informazioni utili. I nodi condividono periodicamente (e quando ci sono cambiamenti) le prime due colonne delle proprie tavole di routing con i vicini (la colonna del next hop non serve in quanto sappiamo che sarà riempita dal nodo che ha inviato la tavola).
+        
+        \paragraph{Aggiornamento.}
+            Quando un nodo riceve una tavola di routing deve aggiornare la propria, nel seguente modo:
+            \begin{enumerate}
+                \item Se il nodo V (da usare come next hop) promette di poter raggiungere un certo nodo con costo \textit{x}, il nodo corrente dovrà sommare \textit{x} al costo per raggiungere V.
+                
+                \item Viene costruita una tavola di routing temporanea in cui ogni nodo ha come next hop V, quindi tutti i percorsi passano per V.
+                
+                \item Vengono confrontate questa nuova tavola e quella originale riga per riga; se la colonna del next hop è diversa, viene presa quella con costo più piccolo; se è uguale viene presa quella con costo più alto. Ciò avviene perché comunque saremmo dovuti passare per V, quindi se il costo è peggiorato per V sarà per forza peggiorato anche per il nostro nodo. Tenere la riga precedente vorrebbe dire avere un percoro migliore ma obsoleto.
+            \end{enumerate}
+            
+            Il protocollo RIP non funziona benissimo quando ci son frequenti cambiamenti di topologia, a causa di un fenomeno detto \textit{convergenza lenta} che non permette alle tavole di routing di stabilizzarsi abbastanza in fretta da assecondare i cambiamenti.
+            
+        \paragraph{Quando condividere le informazioni.}
+            Questo avviene periodicamente (tipicamente ogni 30s ma dipende dall'implementazione) e quando un nodo si accorge di un cambiamento/guasto.
+            
+        \subsubsection{Problema dell'instabilità: ciclo di 2 nodi}
+            Se un nodo X era previamente raggiungibile da B tramite a A il collegamento subisce un guasto, potrebbe esserci un problema: prima che A invii la tavola aggiornata a B, B potrebbe inviarla ad A. A questo unto A sarà convinto di poter ancora raggiungere X, ma passando per B. Invia quindi suddetta tavola a B. A questo punto entrambi penseranno di poter raggiungere X, passando l'uno per l'altro. Questo creerà un ciclo infinito per i pacchetti che si trovano su uno dei due nodi e che devono raggiungere X. Tale situazione è instabile e non converge verso una situazione stabile.
+            
+            \paragraph{Un infinito finito.} Si può usare un valore finito per rappresentare l'infinito, come per esempio 100; molte reti usano 16. Così facendo dopo un certo numero di cicli ci si renderà conto che in realtà X è irraggiungibile.
+            
+            \paragraph{Split horizon.} Un'altra soluzione si chiama split horizon e prevede che un nodo non invii l'intera tavola ai suoi vicini; se il nodo B pensa, secondo la sua tavola di routing, che il percorso ottimo per arrivare a X passi per A, non invia tale percorso ad A. Questo ha senso, in quanto il problema precedente deriva proprio dal fatto che B prenda un'informazione da A, la modifichi e la rispedisca ad A.
+            
+            \paragraph{Split horizon e poison reverse.} La strtegia appena vista crea un problema: solitamente i protocolli di routing basati su vettore delle distanze usano una scadenza per le informazioni contenute nelle tavole. Se queste informazioni non vengono aggiornate vengono eliminate, anche se corrette. Il metodo poison reverse prevede di continuare a inviare la tavola completa, ma anziché usare l'effettivo valore per il passaggio da A, usare un valore fittizio che verrà scartato, come il valore infinito stesso.
+            
+    \subsection{Routing basato sullo stato dei collegamenti}
+        In questo tipo di routing ogni nodo costruisce una propria conoscenza della rete e dei collegamenti che la compongono; può così usare l'algoritmo di Dijkstra per costruire la propria tavola di routing.
+        
+        Chiaramente ogni nodo dovrà aggiornare le proprie conoscenze man mano che la topologia della rete cambia. Nodi più lontano riceveranno queste informazioni più tardi. Mettendo insieme le parziali conoscenze dei nodi rispetto alla rete possiamo ottenere, per una rete abbastanza stabile, una buona conoscenza totale.
+        
+        \subsubsection{Condivisione della conoscenza}
+            Come abbiamo detto, nel routing basato sullo stato dei collegamenti, ogni nodo condivide la propria conoscenza parziale con gli altri nodi. La disseminazione di queste conoscenze avviene tramite le seguenti quattro azioni:
+            \begin{enumerate}
+                \item Creazione delle informazioni dello stato di ogni collegamento da parte di ogni nodo; tali informazioni vengono memorizzate in pacchetti denominati LSP (Link State Packet).
+                
+                \item Disseminazione tramite tecnica di inondamento (flooding); è efficiente ed affidabile.
+                
+                \item Calcolo dell'albero dei cammini da parte di ogni nodo.
+                
+                \item Costruzione delle tavole di routing.
+            \end{enumerate}
+            
+            \paragraph{Creazione dei pacchetti LSP.} Vengono generati sia periodicamente che quando viene rilevato un cambiamento nella rete. Essi possono contenere molte informazioni ma per ora prenderemo inconsiderazioni quelle strettamente necessarie: identità del pacchetto creatore, elenco dei collegamenti (questi costituiscono la conoscenza parziale del nodo), numero di sequenza che facilita la diffusione e la distinzione di pacchetti vecchi da pacchetti nuovi, e tempo di creazione, che equivalentemente al TTL evita che un pacchetto invecchi troppo.
+            
+            \paragraph{Disseminazione dei pacchetti LSP.} La tecnica di inondamento, o \textit{flooding}, funziona nella seguente maniera:
+            \begin{enumerate}
+                \item Il nodo creatore spedisce una copia del pacchetto LSP a ogni suo vicino.
+                \item Se un nodo riceve un pacchetto da un certo nodo X, controlla se ha in proprio possesso un altro pacchetto proveniente da X: se tale pacchetto è più nuovo di quello ricevuto, il ricevuto viene eliminato; se il pacchetto ricevuto è più nuovo o è il primo ricevuto dal nodo X, si elimina eventualmente il pacchetto datato e si invia il nuovo su tutti i collegamenti di cui si fa parte escluso quello da cui è arrivato il pacchetto in questione.
+            \end{enumerate}
+            
+            \paragraph{Calcolo dell'albero dei cammini minimi.} A questo punto qualsiasi nodo ha una conoscenza totale della rete, e la visualizza come grafo; lo scopo ora è costruire un albero dei cammini minimi. Ciò avviene tramite l'algoritmo di Dijkstra.
+            
+        \subsubsection{OSPF}
+            Il protocollo OSPF (Open Shortest Path First) è un protocollo di routing intradominio basato sullo stato dei collegamenti.
+            
+            \paragraph{Aree.} Per motivi di efficienza, OSPF divide i AS in aree, che sono concettualmente delle reti all'interno del sistema autonomo. Questo permette di propagare le informazioni solo all'interno dell'area e comunicare poi le informazioni alle altre aree tramite dei router chiamati \textit{router di confine}, che comunicheranno coi router di confine delle altre aree.
+            
+            C'è un'area speciale chiamata \textbf{area dorsale}. Tutte le altre aree devono essere collegate alla dorsale. Questo la rende l'area principale, e fa assumere alle altre aree il ruolo di aree secondarie.
+            
+            \paragraph{Metrica.} Il protocollo permette di assegnare ai percorsi diverse metriche, basate magari su ritardo o throughput. Un router può anche avere più tavole di routing e quindi più metriche.
+            
+    \subsection{Routing basato sul vettore dei cammini}
+        Le tecniche di routing viste in precedenza non sono ottimamente scalabili: per sistemi molto grandi queste perdono di efficacia. Per il routing interdominio ci serve un'altra tecnica di routing. 
+        
+        Con la tecnica basata su vettore dei cammini, in ogni AS c'è un router detto \textbf{portavoce}; in realtà ogni AS può avere più di un portavoce ma per descrivere questo tipo di protocolli ci basta considerarne uno solo. Essi funzionano circa come i router intradominio: ognuno gestisce una propria tavola di routing e scambia tali informazioni con gli altri portavoce. La differenza è che viene data più importanza al raggiungimento dei sistemi autonomi e meno alle metriche.
+        
+        \subsubsection{Inizializzazione}
+            Inizialmente i portavoce hanno solo informazioni circa la raggiungibilità del AS che rappresentano.
+            
+            \paragraph{Condivisione delle informazioni.} Un portavoce condivide la propria tavola di routing con i propri vicini (da intendersi come altri portavoce direttamente connessi).
+            
+            \paragraph{Aggiornamento.} Quando un protavoce riceve una tavola di routing, aggiunge alla propria quei nodi che può ora raggiungere tramite il portavoce da cui ha ricevuto suddetta tavola. In questo modo, per ogni pacchetto ricevuto, il portavoce conosce l'intero cammino che il pacchetto dovrà percorrere per raggiungere l'AS interessato.
+            
+            \paragraph{Cicli.} In quanto le tavole di routing dei portavoce contengono l'intero pacchetto che il cammino dovrà intraprendere, è facile evitare cicli: basta assicurarsi che il proprio nome non compaia mai in tale cammino.
+            
+            \paragraph{Politiche di routing.} Ogni AS può implementare le proprie politiche di routing. Siccome le tavole contengono l'intero cammino, se qualche nodo da cui il pacchetto dovrà passare ignora queste politiche, il pacchetto potrà essere ignorato.
+            
+            \paragraph{Cammino ottimo.} Come abbiamo detto, è difficile valutare l'ottimalità del cammino siccome non si prendono in considerazione metriche specifiche e anzi, ogni AS potrebbe implementare la sua metrica personale. A volte si potrebbero implementare metriche basate sulla valutazione degli AS: si potrebbe per esempio evitare un AS ritenuto poco affidabile o sicuro.

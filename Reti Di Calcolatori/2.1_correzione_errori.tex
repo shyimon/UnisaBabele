@@ -1,0 +1,109 @@
+In una rete di calcolatori è necessario trasferire i dati con una certa accuratezza. Purtroppo i dati stessi spesso subiscono alterazioni o errori, motivo per cui si rende necessario l'uso di meccanismi per la rilevazione e correzione di errori. Alcune applicazioni possono funzionare senza troppi problemi anche in presenza di errori. Si pensi per esempio a una trasmissione audio o video, che in presenza di errori non elevati sono comunque fruibili. In altre applicazioni ciò non è possibile.
+
+\section{Introduzione}
+    Iniziamo discutendo alcuni aspetti collegati, direttamente o meno, al rilevamento e alla correzione di errori.
+    
+    \subsection{Tipi di errori}
+        Un \textbf{errore singolo} consta nel cambiamento da 0 a 1 o da 1 a 0 di un singolo bit di un gruppo di bit. A contrario, un \textbf{errore a raffica} l'interferenza dura più di un singolo bit, e quindi ne modifica multipli. Questi bit modificati possono non essere tutti errati, bensì potrebbe esserci un misto di bit corretti ed errati. La durata dell'errore a raffica si misura comunque dal primo all'ultimo bit errati.
+        
+    \subsection{Ridondanza}
+        Per rilevare e correggere errori vengono utilizzati bit aggiuntivi che vengono aggiunti al messaggio dal mittente e rimossi dal destinatario, e che permettono di capire l'entità dell'errore.
+        
+    \subsection{Rilevamento o correzione?}
+        Rilevare gli errori è sostanzialmente più facile che correggerli. Ciò che cerchiamo con la rilevazione è un dato binario (c'è o non c'è errore/i), senza preoccuparci del numero di errori o del se essi siano singoli o a raffica. D'altro canto, per correggerli, dobbiamo sapere quanti sono e la loro posizione. Per esempio per rilevare un singolo errore in un insieme di 8 bit abbiamo 8 possibilità. Per due errori sempre in 8 bit le possibili combinazioni salgono a 28. Possiamo immaginare tutte le possibili combinazioni per 10 errori in 1000 bit.
+        
+    \subsection{Correzione o ritrasmissione?}
+        Un'alternativa alla correzione degli errori è la ritrasmissione. Quando il destinatario non può correggere gli errori, potrebbe usare solo l'informazione della loro presenza per chiedere di rispedire il messaggio, finché non ne arrivi uno che supera il test di rilevamento degli errori (il che non necessariamente implica la non presenza di errori).
+        
+    \subsection{Codifiche}
+        I bit ridondanti vengono aggiunti tramite una certa funzione di codifica che associa un certo gruppo di bit a un altro gruppo di bit, conosciuta anche dal destinatario, il quale potrà applicare ai bit ridondanti per verificare l'integrità del messaggio e talvolta anche correggere gli errori.
+        
+        Le codifiche si dividono in due categorie principali: codifiche a blocchi, che vedremo, e codifiche convoluzionali, più sofisticate e complesse.
+        
+    \subsection{Aritmetica modulare}
+        È di particolare interesse l'aritmetica modulo 2. Infatti, le operazioni di addizione e sottrazione in questo tipo di sistema equivalgono all'OR esclusivo, o XOR. Se i due operandi sono diversi, il risultato è 1, altrimenti 0.
+        
+\section{Codifica a blocchi}
+    In questo tipo di codifica i dati vengono divisi in blocchi ognuno di $k$ bit chiamati \textbf{parola sorgente}, e vengono aggiunti poi $r$ bit ridondanti addizionali. Il blocco così ottenuto di lunghezza $n = k + r$ viene chiamato parola codice.
+    
+    In funzione di ciò possiamo avere $2^n$ parole codice e $2^k$ parole sorgenti. Siccome $n > k$, il numero di parole codici è sempre maggiore del numero di parole sorgenti. Siccome la funzione di codifica è uno-a-uno, ci sono sempre $2^n - 2^k$ parole codice che non vengono usate, e che vengono chiamate parole illecite o illegali.
+    
+    \subsection{Rilevamento degli errori}
+        Possiamo rilevare errori usando una codifica a blocchi se le seguenti condizioni sono soddisfatte:
+        \begin{enumerate}
+            \item Il ricevitore ha, o può costruire, una lista delle parole codice valide.
+            
+            \item La parola codice inviata dal mittente è stata cambiata in una parola codice invalida.
+        \end{enumerate}
+        
+    \subsection{Correzione degli errori}
+        Come abbiamo detto, questo compito è molto più complesso. In particolare, serve un numero maggiore di bit ridondanti e la funzione di rilevamento è decisamente più complessa.
+        
+    \subsection{Distanza di Hamming}
+        Questa è un concetto fondamentale per la rilevazione di errori. È in pratica la quantità di bit diversi fra due sequenze di bit, e può essere calcolata facendo lo XOR fra le stesse e calcolando il numero di 1 presenti nella parola risultante.
+        
+        In particolare, un concetto importante è la \textbf{distanza di Hamming minima}, che è definita come, dato un insieme di parole, la distanza di Hamming più piccola prese in considerazione quelle fra tutte le coppie di parole.
+        
+        \subsubsection{Parametri di uno schema di codifica}
+            Uno schema di codifica è solitamente specificato dalla lunghezza $n$ delle parole codice, dalla lunghezza $k$ delle parole sorgente e dalla distanza di Hamming minima.
+            
+        \subsubsection{Distanza di Hamming ed errori}
+            La distanza di Hamming può dirci il numero di bit alterati durante la trasmissione; semplicemente, questo è la distanza di Hamming fra la parola inviata e quella ricevuta.
+            
+        \subsubsection{Distanza di Hamming minima per il rilevamento degli errori}
+            La distanza di Hamming minima gioca un ruolo fondamentale nel rilevamento di errori. Sappiamo che per $s$ errori avvenuti, la distanza di Hamming tra la parola codice ricevuta e quella inviata è proprio $s$. Se il codice che utilizziamo deve essere capace di rilevare fino a $s$ errori, la sua distanza di Hamming minima deve essere almeno $s+1$.
+            
+            È da notare che un codice con $d_{min} \geq s+1$ può, in alcuni casi, rilevare più di $s$ errori, ma la rilevazione è assicurata solo per un numero di errori al più uguale a $s$.
+            
+        \subsubsection{Distanza di Hamming minima per la correzione degli errori}
+            Se diamo un'interpretazione geometrica e consideriamo le parole valide come centri di cerchi di raggio $d_{min}$, possiamo pensare di cercare la parola valida nel "territorio" della parola che ci è arrivata. Se questo cerchio contiene una sola parola codice valida, abbiamo trovato la correzione giusta. Per assicurare questo dobbiamo avere $d_{min} > 2t$, dove $t$ è il numero di errori che si vuole correggere.
+            
+\section{Codici lineari}
+    La maggior parte dei codici a blocchi usati in pratica fanno parte di una sottocategoria, quella dei codici lineari. L'utilizzo della versione non lineare non è molto diffuso a causa delle difficoltà di implementazione e analisi dei codici stessi. Per i nostri scopi ci limitiamo a una definizione informale dei codici lineari:
+    \begin{center}
+        In un codice a blocchi lineare, l'operazione XOR fra due qualsiasi parole codice valide, restituisce una ulteriore parola codice valida.
+    \end{center}
+    
+    La \textbf{distanza minima di Hamming} per un tale codice è data dal numero di 1 nella parola che non è composta interamente da 0 e con il minimo numero di 1.
+    
+    \subsection{Alcuni codici lineari a blocchi}
+        \paragraph{Parità.} Uno dei più noti codici per il rilevamento di errori è il cosiddetto codice di \textbf{parità}. In questo codice, partendo da una parola sorgente di $k$ bit, si ottiene una parola codice di $n = k + 1$ bit, dove il bit aggiunto è tale che il numero di 1 nella parola codice sia sempre pari (o dispari, il quale è un caso simmetrico e ugualmente valido).
+        
+        La distanza minima di Hamming per questo codice è 2, il che vuol dire che può rilevare con certezza al più un errore ma non è in grado di correggerne nessuno. In particolare, per un numero di errori dispari, il codice del blocco di parità è in grado di rilevare errori. Un numero di errori pari invece causa la cancellazione degli errori fra di loro resettando la \textbf{sindrome} (il bit usato per stabilire se la parità è violata, ossia la somma degli 1 mod 2) e quindi rendendo gli errori inindividuabili.
+        
+        \paragraph{Parità bidimensionale.} Un raffinamento di questa tecnica consta nel creare una tabella con le parole sorgenti e calcolare la parità per ogni riga, colonna, e di tutta la tabella. Questo tipo di codifica può rilevare fino a 3 errori, ma non 4, e se l'errore è uno solo può anche essere corretto.
+        
+        \subsubsection{Codici di Hamming}
+            Questi codici a correzione di errori sono stati inizialmente progettati con $d_{min} = 3$, quindi con la capacità di individuare fino a due errori e correggerne uno.
+            
+            Scegliamo inizialmente un numero intero di bit ridondanti $r = m$. Calcoliamo $k$ e $n$ a partire dal numero appena scelto:
+            \begin{itemize}
+                \item $n = 2^m - 1$
+                \item $k = n - m$
+            \end{itemize}
+            
+            Nonostante i codici di Hamming siano in grado di rilevare fino a due errori e correggerne uno solo, possiamo renderli resistenti agli errori a raffica dividendo le parole da spedire in una tabella, di cui invieremo le colonne in sequenza. In questa maniera eseguiamo una sorta di striping, "spezzettando" gli errori a raffica e rendendoli quindi meno influenti.
+    
+\section{Codici ciclici}
+    I codici ciclici sono codici lineari a blocchi con una peculiarità: facendo lo shift ciclico di una parola codice si ottiene un'altra parola codice.
+    
+    Nonostante le conoscenze teoriche necessarie per capire come questi codici si possano usare per correggere errori siano piuttosto avanzate, possiamo studiare i codici \textbf{CRC} (Cyclic Redundant Check), spesso usati per la correzione di errori in reti LAN e WAN.
+    
+    Questi codici offrono prestazioni molto buone sul rilevamento di errori singoli, doppi, a raffica e in numero dispari.
+    
+\section{Somme di controllo}
+    Un ulteriore meccanismo per il rilevamento di errori è chiamato \textbf{somme di controllo}. Vengono perlopiù usate nello strato delle applicazioni.
+    
+    Come per i codici visti in precedenza, fanno uso della ridondanza. Nonostante vengano usate nello strato delle applicazioni, la tendenza è di sostituirle con i codici CRC, che quindi in definitiva sono usati in altri strati oltre che in quello di collegamento.
+    
+    \subsection{Funzionamento}
+        Se dobbiamo inviare una serie di numeri, inviamo la suddetta più la sua somma alla fine della lista. Il ricevitore dovrà fare la somma di tutti i numeri tranne l'ultimo e confrontarla con l'ultimo; se i due valori coincidono assumerà che non ci sono stati errori.
+        
+        Per rendere più facile il lavoro del ricevitore, possiamo accodare alla lista il negativo della somma, così il ricevitore dovrà semplicemente sommare tutta la lista e verificare che il valore ottenuto sia zero.
+        
+    \subsection{Complemento a uno}
+        Il metodo usato in precedenza ha un grosso difetto: la somma potrebbe richiedere molti più bit per essere rappresentata rispetto agli altri elementi della lista. Possiamo ovviare a questo problema usando l'aritmetica in complemento a uno: se un numero richiede più di $n$ bit, sommiamo gli ultimi $n$ a quelli prima dell'$n$-esimo. I numeri negativi vengono rappresentati invertendo tutti i bit della rappresentazione in valore assoluto del numero, che equivale a sottrarre il valore assoluto del numero da $2^n - 1$.
+        
+        La somma di controllo è molto utile in contesto software, in quanto tratta i dati come numeri, li somma e li complementa, cose molto semplici da fare con programmi brevi ed efficienti. L'efficienza di questo codice decresce al crescere della grandezza del messaggio, in quanto sale la probabilità che un errore di incremento in una parte del messaggio sia complementato e cancellato da un errore di decremento in un'altra parte del messaggio.
+        
+        Per ovviare a questo problema fu proposto di rendere la somma pesata, dando alle parole un peso proporzionale alla loro posizione nel messaggio. Ad ogni modo, le somme di controllo vengono poco usate, e vengono invece preferiti i codici CRC.

@@ -1,0 +1,65 @@
+Il protocollo IP è il protocollo principale della rete Internet.
+
+\section{Internetworking}
+    Gli strati fisici e di collegamento operano localmente. Questi hanno la possibilità di consegnare un pacchetto dati al prossimo nodo, sulla stessa rete.
+    
+    In una interrete un pacchetto deve passare da router e switches che lo instradano correttamente, e che devono chiaramente sapere su quale nodo inviarlo.
+    
+    Per risolvere questo problema non sono sufficienti gli strati fisico e di collegamento, e abbiamo \textbf{bisogno di uno strato di rete}, il quale ha esattamente il compito di far arrivare i pacchetti dati dal nodo mittente al nodo destinatario, eventualmetne passando per i corretti switch e router. Questo consta nel controllare le tavole di routing per instradare correttamente il pacchetto ed eventualmente frammentarlo se questo è troppo grande. Una volta arrivato a destinazione, lo strato di rete ha il compito di controllare se il pacchetto sia effettivamente arrivato alla destinazione corretta, e se è un frammento, di aspettare gli altri per ricomporre il messaggio originale.
+    
+    \subsection{Internet e reti a datagram}
+        La rete internet utilizza la commutazione di pacchetto con approccio a datagram per operare la commutazione nello strato di rete. Vengono usati gli indirizzi IP come indirizzi logici.
+        
+    \subsection{Internete e reti senza connessione}
+        La consegna di pacchetti a un destinatario possono essere fatti utilizzando servizi con o senza connessione. In un servizio \textbf{con connessione}, va prima instaurata appunto una connessione. In questo caso i pacchetti hanno una relazione: ogni pacchetto è connesso logicamente alla connessione a cui appartiene, al pacchetto che lo precede e a quello successivo. Quando tutti i pacchetti sono stati consegnati la connessione può essere eliminata.
+        
+        In una comunicazione con connessione, la decisione del cammino che i pacchetti dovranno seguire viene fatta solo una volta, ossia quando la connessione stessa viene instaurata. I pacchetti viaggiano in ordine su un cammino prestabilito.
+        
+        In un \textbf{servizio senza connessione} non offre nessun collegamento fra i pacchetti: due pacchetti che hanno in comune mittente e destinatario e che appartengono allo stesso messaggio potrebbero seguire due strade diverse. Questo è l'approccio adottato dalla rete Internet, in quanto essa è composta da sistemi troppo eterogenei e sarebbe difficile instaurare connessioni.
+        
+\section{IPv4}
+    Il protocollo IPv4 implementa il servizio di consegna dei pacchetti senza connessione. È uno dei protocolli principali della suite TCP/IP.
+    
+    Esso offre un servizio di consegna detto \textbf{best effort}. La consegna avviene senza connessione ed è inaffidabile. Non viene offerto nessun controllo riguardante gli errori ed il flusso. Si noti anche che non necessariamente i pacchetti arriveranno nell'ordine in cui sono stati spediti.
+    
+    Qualora ci sia necessità di un servizio più affidabile o con maggiori funzionalità ci si deve affidare a un protocollo di livello superiore, come quello TCP.
+    
+    \subsection{Datagram}
+        I pacchetti del protocollo IPv4 vengono chiamati \textbf{datagram}. Essi hanno lunghezza variabile e sono divisi in due parti: un'intestazione (che varia da 20 a 60 byte) e un carico dati. L'intestazione è strutturata come segue:
+        \begin{enumerate}
+            \item \textbf{Versione.} La versione del protocollo IP. Fornisce contesto e giusta interpretazione per tutti i campi successivi. Se non è riconosciuta il datagram viene scartato.
+            
+            \item \textbf{LI (lunghezza intestazione).} Grande 4 bit, descrive la lunghezza dell'intestazione in gruppi di parole da 4 byte: quindi la lunghezza sarà un multiplo di 4. Può andare da 20 a 60 byte.
+            
+            \item \textbf{Servizi.} Questi bit rappresentano la priorità del pacchetto in situazioni di congestione e il servizio da offrire (affidabilità massima, costo minimo, etc.)
+        \end{enumerate}
+        
+        Altri campi indicano la lunghezza totale del datagram, il suo Time To Live, eventuali flag e indirizzi di mittente e destinatario.
+        
+    \subsection{Frammentazione}
+        La grandezza di un datagram deve essere inferiore alla MTU (Maximum Transfer Unit) e dipende dallo strato fisico, in quanto legata a caratteristiche hardware. Per rendere il protocollo IPv4 indipendente dall'hardware, si è deciso di stabilire una grandezza massima dei datagram di 65535 byte e di frammentarlo in datagram più piccoli qualora questa condizione venisse violata per eccesso.
+        
+        Questa operazione di frammentazione può avvenire anche nel nodo sorgente prima dell'invio. Un datagram è frammentato in quelli che sono a loro volta altri datagram a tutti gli effetti, i quali possono essere ulteriormente frammentati se si trovano a passare da stazioni con MTU più piccoli.
+        
+        Il \textbf{riassemblaggio} avviene invece solo al nodo sorgente. Questo è infatti l'unico nodo su cui sappiamo per certo che passano tutti i frammenti, a meno di errori o perdite.
+        
+    \subsection{Campi dell'intestazione usati per la frammentazione}
+        L'\textbf{identificativo}, insieme con l'indirizzo IP della sorgente servono a identificare univocamente un datagram. Questo viene mantenuto nei frammenti e quindi è utile per identificarli come appartenenti a un unico datagram.
+        
+        Il \textbf{flag} è composto da 3 bit: il primo è riservato, il secondo è chiamato di \textit{non frammentazione}, che indica se il datagram deve essere ulteriormente frammentato, e il terzo è chiamato \textit{bit di altri frammenti}; se questo bit vale 1 ci sono altri frammenti di questo datagram, ossia il presente non è l'ultimo frammento.
+        
+        L'\textbf{offset} indica il valore di offset rispetto al datagram originale in unità di 8 byte; se il frammento è un frammento di un frammento, questo valore fa sempre riferimento al datagram originale.
+        
+        Per ricomporre un datagram si segue la seguente strategia:
+        \begin{enumerate}
+            \item Si cerca il frammento con offset 0, che sarà il primo.
+            
+            \item Se il primo frammento ha come bit di altri frammenti 1, si divide la sua lunghezza per 8 e si cerca un frammento con quel valore come offset.
+            
+            \item Si continua ad andare avanti cercando frammenti in base all'offset finché non se ne trova uno con bit di altri frammenti uguale a 0.
+        \end{enumerate}
+        
+    \subsection{Opzioni}
+        L'intestazione di un datagram IPv4 contiene due sezioni, una fissa e una variabile. Quella fissa è lunga 20 byte ed è stata descritta, mentre quella variabile può arrivare a 40 byte e può opzionalmente contenere opzioni che tutti i software che trattano pacchetti IPv4 devono sapere come gestire.
+        
+        Queste opzioni vengono usate per debugging od operazioni di testing della rete. Includono per esempio la registrazione dei router attraversati, un instradamento guidato o suggerito dalla sorgente, o registrazioni di orario.

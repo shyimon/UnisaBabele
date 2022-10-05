@@ -1,0 +1,261 @@
+\section{Introduzione}
+    Gli algoritmi di gestione della memoria visti fino ad ora sono necessari a causa di un importante requisito: le istruzioni da eseguire si devono trovare in memoria fisica. La prima e più banale soluzione è quella di collocare l'intero spazio d'indirizzi logici del processo in memoria fisica.
+    
+    Questo riduce di molto le dimensioni massime di un programma a valori strettamente collegati alle dimensioni della memoria fisica. Tuttavia, facendo riferimento a programmi reali, notiamo che non è strettamente necessario che tutto il programma si trovi in memoria in un qualsiasi dato momento. Si considerino per esempio casi in cui abbiamo condizioni di errore molto rare, allochiamo più memoria di quanto necessaria in media, o in generale i casi in cui un programma abbia opzioni e casi d'uso rari. Questo è particolarmente palese nei videogiochi: se il giocatore si trova in un livello o zona di una mappa, è totalmente inutile caricare gli altri livelli o tutta la mappa.
+    
+    Anche nel caso in cui un programma debba essere disponibile nella sua interezza, non caricarlo tutto in memoria porta alcuni vantaggi:
+    \begin{itemize}
+        \item I programmatori non sono più vincolati dalla quantità di memoria fisica disponibile e possono invece scrivere programmi per uno \textbf{spazio di indirizzi virtuale} molto grande.
+        
+        \item Il grado di multiprogrammazione aumenta; siccome un programma impiega meno memoria fisica, possiamo avere altri programmi in memoria contemporaneamente.
+        
+        \item Lo \textit{swapping} richiede meno operazioni di I/O.
+    \end{itemize}
+    
+    Siamo dunque convinti che la possibilità di eseguire un programma che non si trova completamente in memoria apporterebbe molti vantaggi.
+    
+    La \textbf{memoria virtuale} si basa sul concetto di separazione di memoria fisica e memoria logica percepita dall'utente. L'espressione \textbf{spazio degli indirizzi virtuale} si riferisce alla collocazione dei processi in memoria dal punto di vista logico (o virtuale). Da questo punto di vista lo spazio logico inizia da un certo indirizzo logico, per esempio 0, e si estende in maniera contigua. Come abbiamo visto, le pagine effettive possono essere assegnate ai frame in maniera non contigua, ma la gestione di ciò spetta alla MMU e al sistema operativo. Un altro vantaggio è la condivisione di memoria e file fra diversi processi, tramite la condivisione delle pagine. Questo comporta i seguenti vantaggi:
+    \begin{itemize}
+        \item Le librerie di sistema possono essere mappate su indirizzi logici di più processi. Così facendo ogni processo vedrà la libreria come appartenente al suo spazio di indirizzi, ma in effetti ci sarà una sola libreria caricata in memoria.
+        
+        \item In maniera analoga si può condividere la memoria fra più processi. Questo permette a un processo di rendere parte della sua memoria condivisibile da un altro processo, creando così un rapido mezzo di comunicazione.
+        
+        \item Le pagine possono essere condivise da più processi durante la chiamata di sistema \texttt{fork()}, così da velocizzare la creazione di nuovi processi.
+    \end{itemize}
+    
+\section{Paginazione su richiesta}
+    Questa tecnica prevede il caricamento in memoria solo delle pagine richieste all'inizio dell'esecuzione. Durante l'esecuzione, se ulteriori dati saranno richiesti, le pagine corrispondenti saranno caricate dal dispositivo, solitamente la memoria di massa, su cui si trovano.
+    
+    \subsection{Concetti fondamentali}
+        In base a quanto appena visto, quando un processo è in esecuzione alcune delle sue pagine saranno caricate in memoria, mentre altre si troveranno sulla memoria secondaria. Abbiamo quindi bisogno di un supporto hardware per distinguere fra i due casi.
+        
+        Si può utilizzare lo schema basato sul bit di validità, e considerare il bit come "valido" se la pagina è valida e presente in memoria, come "non valido" se la pagina richiesta non appartiene allo spazio di indirizzamento del processo, oppure se vi appartiene ma è attualmente nella memoria secondaria.
+        
+        Quando una pagina è contrassegnata come \textit{non valida}, viene generato un \textit{page fault} e il sistema operativo lo gestisce in maniera lineare:
+        \begin{enumerate}
+            \item Si controlla una tabella interna per questo processo (solitamente conservata insieme al PCB) per verificare se il riferimento fosse valido o meno.
+            
+            \item Se il riferimento non era valido, si termina il processo. Altrimenti vuol dire che la pagina ancora non è stata caricata e si rimedia caricandola.
+            
+            \item Si individua un frame libero, per esempio prelevandone uno dalla lista dei frame liberi.
+            
+            \item Si programma un'operazione per trasferire la pagina desiderata nel frame appena assegnato.
+            
+            \item Quando la lettura del disco è completata, si aggiornano la tabella interna e la tabella delle pagine per indicare che la pagina si trova attualmente in memoria.
+            
+            \item Si riavvia l'istruzione interrotta dall'eccezione. A questo punto il processo può procedere come se la pagina fosse sempre stata in memoria.
+        \end{enumerate}
+        
+        Possiamo prendere il caso estremo in cui un processo venga avviato \textit{senza} pagine in memoria. In questo caso tutte le pagine necessarie vengono caricate tramite \textit{page fault}, e si parla di \textbf{paginazione su richiesta pura}.
+        
+        In alcuni casi potrebbe essere necessario il caricamento di più pagine per una sola istruzione (una per l'istruzione, aggiuntive per i dati). In questo caso le prestazioni sarebbero inaccettabili, ma fortunatamente è una situazione abbastanza rara.
+        
+        L'hardware di supporto alla paginazione su richiesta è lo stesso necessario per la paginazione e l'avvicendamento dei processi in memoria:
+        \begin{itemize}
+            \item \textbf{Tabella delle pagine.} Ha la capacità di assegnare a un elemento validità o non validità tramite un bit apposito.
+            
+            \item \textbf{Memoria secondaria.} Conserva le pagine non allocate in memoria centrale, conservandole su un'area apposita detta \textit{swap space}.
+        \end{itemize}
+        
+        Un requisito importante per la paginazione su richiesta è la possibilità di riprendere l'esecuzione esattamente dal punto in cui è stata interrotta, con stessi registri, stato, etc, a meno della presenza in memoria della pagina richiesta.
+        
+        Questo è semplice nella maggior parte dei casi, e richiede un lavoro solitamente piccolo (una frazione di istruzione non atomica). Troviamo un problema nel caso in cui un'istruzione possa modificare parecchie locazioni diverse, in quanto in tal caso non è sufficiente limitarsi a riavviare l'istruzione perché le locazioni che ha già modificato potrebbero essere state lasciate in uno stato incoerente. Una \textbf{prima soluzione} consiste nell'accesso alle due estremità dell'area da modificare. I \textit{page fault} possono avvenire solo in questa fase, altrimenti sappiamo che l'intera area è stata caricata e si può procedere a modificarla senza incappare in ulteriori page fault. Una \textbf{seconda soluzione} è quella di copiare le pagine che andremo a modificare in dei registri temporanei, in modo tale da poter ripristinare il loro stato originale in caso di \textit{page fault}.
+        
+    \subsection{Lista dei frame liberi}
+        Ogni volta che avviene un page fault, il sistema operativo deve spostare una pagina dalla memoria secondaria a quella centrale, e per fare ciò deve ovviamente conoscere quali frame sono disponibili ad accomodare pagine.
+        
+        La maggior parte dei sistemi operativi a questo scopo mantiene una \textbf{lista dei frame liberi}. Vengono spesso allocati con una tecnica nota come \textbf{zero-fill-on-demand}: i frame vengono azzerati su richiesta prima di essere allocati, cancellando il loro precedente contenuto.
+        
+        All'avvio di un sistema tutta la memoria viene inserita nella lista dei frame liberi e la sua dimensione si riduce man mano che i frame vengono popolati. Quando la sua dimensione si riduce a zero o scende sotto una certa soglia, essa deve essere ripopolata.
+        
+\section{Copiatura su scrittura}
+    Come abbiamo visto, possiamo duplicare l'esecuzione di un processo tramite \texttt{fork()}. La tecnica che abbiamo usato fino ad ora è di duplicare l'intero spazio degli indirizzi del genitore, ma questo può risultare inutile in quanto spesso viene usata una \texttt{exec()} subito dopo.
+    
+    Adottiamo quindi una tecnica chiamata \textbf{copiatura su scrittura} (\textit{copy-on-write}), che si basa sulla condivisione di pagine fra genitore e figli. Le pagine condivise si contrassegnano come da copiare su scrittura; se un processo (genitore o figlio) scrive su una pagina condivisa, il sistema deve creare una copia di tale pagina.
+    
+    Notiamo che è necessario contrassegnare come da copiare su scrittura solo le pagine che è effettivamente possibile modificare. Questa tecnica è usata su molti sistemi operativi.
+    
+\section{Sostituzione delle pagine}
+    Fino ad ora abbiamo assunto che ogni pagina di un processo potesse dare origine al più a un page fault, nel momento in cui viene caricata. Tuttavia abbiamo visto che con la paginazione con richiesta, non tutte le pagine devono essere caricate. Questo ci permette di assumere un carico ridotto di I/O, oltre che di aumentare il grado di multiprogrammazione; infatti, con 40 frame, se ogni processo ha dimensione di 10 pagine ma ne caricherà in media la metà, possiamo assumere di caricarne 8 anziché 4, che è un aumento del 100\% del grado di multiprogrammazione.
+    
+    Tuttavia notiamo subito un problema, nel caso in cui, in un particolare istante di tempo, i processi richiedano più della memoria da noi prevista. Inoltre notiamo che la memoria non è solo riservata solo alle pagine dei processi ma ci sono significative aree di memoria dedicate all'I/O. Questi due problemi rendono più complessa la corretta previsione delle pagine impiegate complessivamente dai processi, e rendono quindi più rischiosa la \textit{sovrassegnazione}.
+    
+    La \textbf{sovrallocazione} (\textit{over-allocation}) può essere illustrata come segue: durante l'esecuzione di un processo utente si verifica un page fault. A questo punto il sistema operativo va a recuperare dalla memoria di massa la pagina desiderata, ma la lista dei frame liberi è vuota.
+    
+    Una soluzione consisterebbe nella terminazione del processo utente, tuttavia questo andrebbe contro lo scopo principale della paginazione stessa. In alternativa si può pensare di scaricare un intero processo, liberando tutti i suoi frame. Anche ciò risulta improbabile in quanto lo swapping sandard non è più diffuso a causa del grande overhead richiesto per eseguire lo swap di un intero processo.
+    
+    I sistemi operativi moderni usano dunque una combinazione di swapping e \textbf{sostituzione di pagina}, che andremo a descrivere di seguito.
+    
+    \subsection{Sostituzione di pagina}
+        La sostituzione delle pagine segue il seguente criterio: se nessun frame è libero, ne viene liberato uno attualmente inutilizzato. È possibile fare ciò scrivendo il suo contenuto nell'area di swap e indicandolo nella tabella delle pagine (e nelle altre tabelle che lo referenziano) come non valido, per indicare che non si trova più in memoria.
+        
+        La procedura di servizio dell'eccezione di page fault includerà dunque ora un passo intermedio in cui si seleziona una pagina \textbf{vittima} tramite un certo algoritmo e la si scrive nel disco, aggiornando le relative tabelle; quello che abbiamo appena descritto dunque.
+        
+        Occorre notare che nel caso in cui non ci siano più frame liberi, servono due trasferimenti di pagine, uno swap out per la vittima e uno swap in per la pagina richiesta. Questo \textbf{raddoppia} il tempo richiesto per risolvere il page fault.
+        
+        Una possibile riduzione di questo problema deriva da un'osservazione: se la pagina non è stata modificata dal momento in cui è stata caricata, non serve ricaricarla sul disco, in quanto \textit{vi sarà già presente}. Questo vale sicuramente per le pagine di sola lettura, ma possiamo implementare un \textbf{bit di modifica} (\textit{modify bit} o \textit{dirty bit}) che inizialmente è posto a 0, e viene posto a 1 se la pagina caricata viene modificata. Nel caso di un \textit{dirty bit} uguale a zero possiamo risparmiarci di fare lo swap out della pagina.
+        
+        Ci siamo a questo punto convinti dell'utilità della paginazione su richiesta: essa mette a disposizione del programmatore una memoria virtuale molto più grande di quella fisica e separa i due tipi di memoria. Al fine della sua realizzazione però abbiamo bisogno di un \textbf{algoritmo di allocazione dei frame} e di un \textbf{algoritmo di sostituzione delle pagine}. Ciò vuol dire che quando sono presenti due processi in memoria bisogna stabilire quanti frame assegnare a ciascun processo e nel caso di una sostituzione di pagina, occorre selezionare i frame da sostituire.
+        
+    \subsection{Sostituzione delle pagine secondo l'ordine di arrivo (FIFO)}
+        QUesto è l'algoritmo di sostituzione più semplice, e va a sostituire la pagina che si trova da più tempo in memoria. Ovviamente questo algoritmo può essere implementato con una coda FIFO, senza necessità di memorizzare gli istanti di tempo in cui una pagina è stata inserita in memoria.
+        
+        Per quanto riguarda le prestazioni, questo non è decisamente il miglior algoritmo: è facile da capire, implementare, e i page fault non causano errori, ma non necessariamente la pagina più anziana è la scelta ottimale per la sostituzione.
+        
+        Introduciamo anche l'\textbf{anomalia di Belady}: nonostante possa risultare logico che l'aumento di frame disponibili corrisponda a una diminuzione dei page fault, talvolta viene osservato sperimentalmente il contrario.
+        
+    \subsection{Sostituzione ottimale delle pagine}
+        Dopo la scoperta dell'anomalia di Belady è iniziata la ricerca di una algoritmo ottimale per la sostituzione delle pagine, ossia l'algoritmo che non presenta mai tale anomalia e allo stesso tempo non presenta mai l'anomalia di Belady. Questo algoritmo esiste ed è chiamato OPT o MIN, e consiste nel: \textit{sostituire la pagina che non verrà usata per il periodo di tempo più lungo}.
+        
+        Questo algoritmo, per definizione, è ottimo, anche se difficile da realizzare in quanto richiede la conoscenza futura della successione dei riferimenti, una situazione analoga all'algoritmo SJF nell'ambito dello scheduling della CPU. Per questo motivo è usato perlopiù in esempi e come metro di paragone per altri algoritmi.
+        
+    \subsection{Sostituzione delle pagine usate meno recentemente (LRU)}
+        L'algoritmo \textbf{LRU} (\textit{least recently used}) tenta di approssimare quello ottimale, andando a sostituire la pagina che \textbf{non è stata usata per il periodo più lungo}.
+        
+        Possiamo implementare ciò associando a ciascuna pagina l'istante in cui è stata usata per l'ultima volta. Nonostante alcune problematiche, questo algoritmo resta uno dei migliori anche se sub-ottimo, e viene spesso considerato valido e utilizzato nella pratica. Le difficoltà principali sono relative alla sua implementazione, in quanto ordinare i frame in base al loro ultimo utilizzo può richiedere una considerevole assistenza da parte dell'hardware. Si possono realizzare le due seguenti soluzioni:
+        \begin{itemize}
+            \item \textbf{Contatori.} Si inizializza un contatore che viene incrementato a ogni riferimento alla memoria. Ogni volta che si fa riferimento a una pagina, si copia il contenuto del contatore in una apposita variabile, e la pagina meno recentemente utilizzata sarà quella con il valore di questa variabile più basso. Questo implica però la ricerca della pagina meno recentemente utilizzata e una scrittura in memoria per ogni accesso alla memoria.
+            
+            \item \textbf{Stack.} Il secondo metodo implica uno stack, e il posizionare l'elemento appena usato in cima a quest'ultimo. In tal modo l'elemento più recentemente utilizzato si trova in cima allo stack, quello meno recentemente utilizzato in fondo. Siccome gli elementi appena utilizzati si trovano al centro dello stack, quest'ultimo viene spesso implementato come una lista doppiamente concatenata.
+        \end{itemize}
+        
+        Né la sostituzione ottimale né quella LRU sono soggetti all'anomalia di Belady, in quanto facenti parte di una classe chiamata \textbf{algoritmi a stack}.
+        
+        Si noti tuttavia che questi algoritmi sarebbero impossibili senza un certo supporto hardware, in quanto sono necessari aggiornamenti di strutture dati a ogni accesso alla memoria, il che causerebbe un sovraccarico eccessivo.
+        
+    \subsection{Sostituzione delle pagine per approssimazione a LRU}
+        Sono pochi i sistemi di calcolo che dispongono dell'hardware necessario per implementare un vero algoritmo di sostituzione basato su LRU. Tuttavia un algoritmo di tipo FIFO è troppo impreciso.
+        
+        Molti sistemi offrono un aiuto: il \textbf{bit di riferimento}. Questo è un bit inizialmente impostato a zero per tutte le pagine, e che viene impostato a uno quando una pagina viene referenziata. Così facendo possiamo sapere a quali pagine abbiamo fatto riferimento, ma non in che ordine. Ciò è la base per molti algoritmi che approssimano il modello LRU.
+        
+        \paragraph{Algoritmo con bit supplementari di riferimento}
+            Possiamo registrare il bit di riferimento a intervalli regolari. Supponiamo per esempio di avere un byte per ogni pagina.
+            
+            A intervalli regolari in interruzione trasferisce il controllo al sistema operativo, che registrerà il bit di controllo di ciascuna pagina nel bit più significativo del vettore appena definito. In questo modo sapremo che la pagina con associato il byte 00000000 non è stata usata da otto periodi di tempo, e per esempio che la pagina con il byte 10110101 è stata usata più recentemente della pagina con byte 01110111. Interpretando questi byte come interi senza segno, possiamo prendere quello minore come migliore approssimazione del LRU.
+            
+            Ovviamente il numero di bit usati può variare e dipende dall'hardware disponibile, e nel caso limite in cui sia zero, si parla di \textbf{algoritmo di sostituzione con seconda chance}.
+            
+        \paragraph{Algoritmo con seconda chance}
+            Questo semplice algoritmo si basa sull'algoritmo che usa una coda FIFO. Una volta selezionato l'ultimo elemento, si controlla però il bit di riferimento: se questo è 0 si sostituisce la pagina, se è 1 gli viene data una seconda chance e si passa all'elemento successivo della coda.
+            
+            Quando a una pagina viene data una seconda chance si azzera il suo bit di riferimento e si aggiorna il suo istante di arrivo al momento corrente.
+            
+            Una possibile implementazione può avvenire tramite una coda circolare, e viene detta \textbf{a orologio} (\textit{clock}), in cui un puntatore (lancetta) indica la prima pagina da sostituire. A ogni riferimento, si fa avanzare la lancetta finché non si trova un bit di riferimento 0, azzerando inoltre il bit dell'elemento appena visitato. Una volta trovata la pagina vittima, si inserisce al suo posto la nuova pagina.
+            
+            Si noti che nel caso peggiore, ossia di tutti i bit di riferimento impostati a 1, viene visitata tutta la cosa e tutti i bit vengono impostati a 0.
+            
+        \paragraph{Algoritmo con seconda chance migliorato}
+            L'algoritmo precedentemente descritto si può migliorare considerando i bit di riferimento e modifica una coppia ordinata, con cui si possono ottenere le seguenti quattro classi:
+            \begin{enumerate}
+                \item (0, 0). Né recentemente usato né modificato - migliore pagina da sostituire.
+                
+                \item (0, 1). Non recentemente usato ma modificato - pagina non ottima da sostituire in quanto dovrà essere scritta in memoria.
+                
+                \item (1, 0). Recentemente usato ma non modificato - probabilmente sarà usato di nuovo a breve.
+                
+                \item (1, 1). Recentemente usato e modificato - probabilmente sarà usato di nuovo e dovrà inoltre essere scritto in memoria.
+            \end{enumerate}
+            
+            Si usa la visita a orologio ma si sostituisce la prima pagina con classe minima non vuota. Si noti che si dovrebbe poter visitare l'intera coda più volte prima di eseguire una sostituzione. La differenza principale col metodo precedentemente descritto è che qui si prende in considerazione il bit di modifica, cercando quindi di diminuire anche il numero di I/O.
+            
+    \subsection{Sostituzione delle pagine basata su conteggio}
+        Potremmo pensare di usare un contatore dei riferimenti fatti a ciascuna pagina, e sviluppare i due seguenti schemi:
+        \begin{itemize}
+            \item \textbf{Algoritmo di sostituzione delle pagine meno frequentemente usate} (\textit{least frequently used}, LFU); si sostituisce la pagina con il contatore più basso. Il ragionamento dietro ciò è che una pagina poco usata deve avere un contatore basso. Tuttavia incorriamo in un problema nel caso in cui una pagina venga utilizzata molto intensamente alla creazione di un processo per poi venire messa da parte. Una possibile soluzione è quella di implementare un processo di \textit{aging}, per esempio spostando a destra i bit del contatore a intervalli regolari.
+            
+            \item \textbf{Algoritmo di sostituzione delle pagine più frequentemente usate} (\textit{most frequently used}, MFU); si basa sull'idea che, probabilmente, la pagina con il contatore più basso è appena stata inserita e quindi dovrà essere usata ancora.  
+        \end{itemize}
+        
+\section{Allocazione dei frame}
+    Affrontiamo ora il problema dell'allocazione dei frame. Avendone un numero limitato e più processi che li richiedono, la scelta di quanti frame allocare a quale processo è importante.
+    
+    Come caso base possiamo prendere una combinazione di paginazione su richiesta pura e uno degli algoritmi di sostituzione visti, ma ci sono molte variazioni di questa semplice strategia, ma la base è chiara: si assegna al processo utente qualsiasi frame libero.
+    
+    \subsection{Numero minimo di frame}
+        Le strategie di allocazione di frame sono soggette a parecchi vincoli. Per esempio, non si possono allocare più frame di quanti ne siano disponibili, e allo stesso tempo è necessario allocare un numero minimo di frame. Esaminiamo quest'ultimo requisito in maggior dettaglio.
+        
+        Il motivo principale di un limite minimo di pagine è legato alle prestazioni. Ovviamente al diminuire del numero di frame, ogni processo degrada in prestazioni, a causa dell'aumento di page fault. Inoltre, un'istruzione che incorre in un page fault deve essere riavviata. È necessario quindi avere un numero di frame che possa accomodare ogni singola istruzione di un dato processo.
+        
+        Il numero minimo di frame per un processo è definito dall'architettura, mentre quello massimo dalla quantità di memoria disponibile. Fra questi due valori vi è ampio spazio di scelta.
+    
+    \subsection{Allocazione globale e allocazione locale}
+        Un altro importante fattore che riguarda l'assegnazione di frame, è la sostituzione delle pagine. Nel caso in cui ci siano più processi in competizione per i frame, gli algoritmi di sostituzione di pagine si possono classificare in due categorie generali: \textbf{sostituzione globale} e \textbf{sostituzione locale}. La sostituzione globale permette a un processo che necessita di un frame di sceglierlo dall'insieme completo dei frame; può quindi sottrarre frame ad altri processi. La sostituzione locale permette a un processo di scegliere un frame solo e soltanto dal suo insieme di frame.
+        
+        Si consideri per esempio uno schema di assegnazione di frame con priorità: potremmo consentire a un processo con priorità più alta di sottrarre frame a qualsiasi processo con priorità più bassa.
+        
+        La sostituzione locale rischia di non rendere disponibili a un processo pagine di memoria poco usate, e difatti spesso la paginazione globale è più efficiente ed utilizzata; vale la pena notare un problema che la affligge: un processo non può controllare il proprio tasso di page fault, in quanto l'insieme di pagine che si trova in memoria non dipende solo dal processo stesso ma anche dagli altri processi.
+        
+        Una possibile \textbf{implementazione} sta nel riciclare l'idea della lista dei frame liberi. Tuttavia, anziché aspettare che la lista si svuoti per iniziare a fare sostituzioni, aspettiamo che scenda sotto una certa soglia. Lo scopo è quello di mantenere la quantità di memoria libera sopra una certa soglia. Quando si scende al di sotto di questa soglia vengono avviate delle routine kernel, solitamente chiamate \textbf{reapers}, che iniziano a recuperare memoria da tutti i processi (in genere escludendo il kernel stesso). Quando la memoria disponibile raggiunge una \textit{soglia massima}, i reaper si fermano, per poi ripartire una volta superata di nuovo la \textit{soglia minima}.
+        
+        I reaper possono impiegare qualsiasi algoritmo di sostituzione di pagina, ma solitamente adottano un algoritmo di approssimazione di LRU. Possono inoltre cambiare algoritmo o adottare politiche più aggressive quando non è in grado di mantenere la lista dei frame liberi al di sopra della soglia minima.
+        
+    \subsection{Accesso non uniforme alla memoria}
+        Fino ad ora abbiamo assunto che diverse parti della memoria all'interno dello stesso sistema fossero uguali, o che comunque vi si potesse accedere nello stesso modo. In \textbf{sistemi con accesso non uniforme alla memoria (NUMA)}, dotati di più CPU, non è così.
+        
+        Su questi sistemi, una CPU può accedere più velocemente a una certa area di memoria rispetto alle altre, che definiamo memoria locale di quella CPU. Nonostante i sistemi NUMA siano, senza eccezioni, più lenti dei sistemi in cui tutti gli accessi alla memoria sono trattati nello stesso modo, vale la pena di considerarli in quanto possono raggiungere livelli maggiori di throughput e parallelismo.
+        
+        Un sistema conscio dell'architettura NUMA dovrà infatti comportarsi di conseguenza: quando un processo incorre in un page fault, è preferibile caricare la pagina nel frame più "vicino" a lui. Se lo scheduler della CPU tenta di schedulare un certo processo su una certa CPU e il sistema di gestione di memoria virtuale tenta di allocare i frame sull'area di memoria più vicina a quella determinata CPU, avremo un numero minore di page fault e quindi un aumento delle prestazioni.
+        
+\section{Thrashing}
+    Si consideri la situazione in cui il numero di frame non è "sufficiente". Andremo a sostituire pagine che saranno tuttavia appartenenti a processi attivi, e quindi saranno subito richieste di nuovo, causando moltissimi page fault.
+    
+    Questa intensa paginazione è nota come \textit{thrashing}, e causa una degradazione rapida e notevole delle prestazioni del sistema.
+    
+    \subsection{Cause del thrashing}
+        Una causa di thrashing può essere l'aumento incontrollato del grado di multiprogrammazione. Eseguendo una quantità eccessiva di processi si tocca un tetto oltre il quale il numero di frame a disposizione non riesce ad accomodare tutti i processi e quindi inizia un'attività intensa di paginazione, che fa decadere le performance dell'intero sistema.
+        
+        Si può attenuare questo problema impedendo a un processo entrato in thrashing di sottrarre frame a un altro processo, cosa che corrisponde a un \textbf{algoritmo di sostituzione locale}.
+        
+        Per evitare totalmente queste situazioni occorre dare a un processo tutti i frame di cui ha bisogno. Ci sono diversi approcci per stimare questo valore. L'approccio del \textbf{working-set} comincia osservando quanti frame il processo sta effettivamente usando, approccio che definisce il \textbf{modello di località} d'esecuzione del processo.
+        
+        Il modello di località stabilisce che un processo, durante la sua esecuzione, si muove di località in località, dove la località è un insieme di pagine usate attivamente insieme. Se si allocano abbastanza frame per accomodare le località attuali del processo, finché queste non verranno modificate non avverranno altri page fault.
+        
+        
+        Questo modello è, si noti, l'assunzione fatta fino ad ora per analizzare il caching. Quest'ultimo sarebbe infatti inutile nel momento in cui gli accessi ai dati fossero casuali, anziché strutturati in località.
+        
+    \subsection{Modello del working set}
+        Come già accennato, questo modello fa riferimento all'ipotesi di località di un processo. Questo modello usa un parametro, $\Delta$, come \textbf{finestra del working set}. L'idea consiste semplicemente nell'aggiungere al working set le pagine attivamente in uso, e rimuoverle dopo $\Delta$ unità di tempo.
+        
+        Un $\Delta$ troppo piccolo potrebbe non includere l'intera località, mentre un $\Delta$ troppo grande implica la sovrapposizione di più località. Nel caso limite, un $\Delta$ infinito fa coincidere il working set con l'insieme di pagine referenziate durante l'intera esecuzione del processo.
+        
+        Data la natura dinamica del working set, la difficoltà principale sta nel tenere traccia dei suoi elementi. A ogni riferimento alla memoria, a un'estremità appare un elemento nuovo, mentre l'elemento più vecchio fuoriesce dall'altra estremità. Una pagina si trova nel working set se uno qualsiasi dei suoi elementi referenzia la pagina stessa.
+        
+    \subsection{Frequenza dei page fault}
+        Il modello del working set ha avuto successo ed è utile conoscerlo, ma appare una soluzione alquanto goffa al problema del thrashing. Una strategia più diretta è quella basata sulla \textbf{frequenza dei page fault} (\textit{page fault frequency}, PFF).
+        
+        Il problema specifico è la prevenzione del thrashing. Possiamo pensare di monitorare la frequenza dei page fault per un dato processo. Se questa è alta, il processo ha bisogno di più frame, mentre se è bassa c'è un'abbondanza di frame.
+        
+        Possiamo per esempio stabilire una soglia superiore di frequenza di page fault oltre la quale a un processo vengono dati frame aggiuntivi, e una inferiore sotto la quale gli vengono sottratti frame.
+        
+        Come nel caso del working set, se la frequenza di page fault per un processo è alta e non disponiamo di ulteriori frame, potrebbe essere necessario eseguire uno swap out del processo, liberando così tutti i suoi frame.
+        
+\section{Altre considerazioni}
+    Le due scelte principali nella progettazione dei sistemi di paginazione sono l'algoritmo di sostituzione e la politica di allocazione discusse precedentemente, ma vanno fatte anche altre considerazioni.
+    
+    \subsection{Dimensione delle pagine}
+        È raro che chi progetta un sistema operativo debba o possa scegliere la dimensione delle pagine. Tuttavia è una cosa importante da tenere in conto durante la progettazione di un nuovo calcolatore. Non esiste una dimensione univocamente migliore ma sappiamo che sono sempre potenze di due, solitamente comprese fra $2^{12}$ (4096) e $2^{22}$ (4.194.304) byte.
+        
+        Un fattore da tenere in considerazione per esempio è la \textbf{dimensione della tabella delle pagine}. Per pagine più piccole la tabella sarà più grande (dovrà indicizzare più pagine), e dovendo ogni processo avere in memoria suddetta tabella, ci conviene avere pagine grandi. Tuttavia pagine di grandi dimensioni causano una maggiore frammentazione interna.
+        
+        Un secondo fattore è il \textbf{tempo di richiesto per leggere o scrivere} una pagina, soprattutto su dispositivi di memorizzazione meccanici. Il tempo di posizionamento e di latenza dominano quello effettivo di scrittura o lettura, rendendo preferibili pagine più grandi. Pagine piccole tuttavia migliorano le prestazioni di I/O totale, in quanto garantiscono una maggiore \textbf{risoluzione}; ciò vuol dire che di un processo si possono caricare solo le parti richieste con piccole pagine, mentre con pagine grandi occorre trasferire e allocare non solo quanto è necessario, ma tutto quanto è nella pagina.
+        
+        Ancora, il \textbf{numero di page fault} aumenta drasticamente con pagine di piccole dimensioni, rendendo preferibili grandi pagine in questo riguardo.
+        
+        Non esiste dunque una risposta definitiva alla dimensione delle pagine, in quanto alcuni fattori sono a favore di dimensioni minori, altri viceversa favoriscono dimensioni piccole. Tuttavia, storicamente, la preferenza è per pagine più grandi.
+        
+    \subsection{Portata del TLB}
+        Il \textbf{tasso di successi} (\textit{hit ratio}) di un TLB si riferisce alla percentuale di indirizzi virtuali correttamente tradotti dal TLB anziché dalla tabella della pagine. Questo numero è chiaramente proporzionale alla dimensione del TLB stesso e quindi sarebbe preferibile aumentarne le dimensioni. Tuttavia la memoria associativa alla base di un TLB è costosa e consuma molta energia.
+        
+        Una metrica collegata al tasso di successi viene detta \textbf{portata del TLB} (\textit{TLB reach}) ed è data semplicemente dal numero di elementi del TLB stesso moltiplicata per la dimensione delle pagine.
+        
+        È quindi ovvio che per aumentare la TLB reach dobbiamo aumentare uno dei due fattori che la compongono. Come abbiamo visto, pagine più grandi causano frammentazione interna. Una possibile soluzione sta nell'utilizzo di pagine di diverse dimensioni. Su Linux per esempio, la dimensione standard di una pagina è 4Kb; tuttavia permette di utilizzare pagine denominate \textit{huge page}, che possono arrivare a dimensioni di 2MB.
+        
+        Nell'architettura ARMv8, ciascun elemento del TLB contiene un \textbf{bit di contiguità}, che indica che l'elemento mappa blocchi di memoria contigua. La portata del TLB è così aumentata, in quanto blocchi contigui possono essere mappati su un singolo elemento del TLB.
+        
+    \subsection{Tabella delle pagine invertita}
+        Questo concetto visto in precedenza si sposa male con la paginazione. Nel caso di page fault infatti si deve necessariamente far riferimento a una tabella della pagine esterna per ciascun processo, che forniscono le informazioni necessarie sullo spazio degli indirizzi logici di ciascun processo.
+        
+        Fortunatamente queste tabelle sono necessarie solo quando avviene un page fault. C'è da considerare che un primo page fault può generarne un secondo quando viene caricata in memoria la tabella delle pagine esterna, problema che richiede un'accurata gestione da parte del kernel.
+        
+    \subsection{Struttura dei programmi}
+        Abbiamo detto che la paginazione su richiesta deve essere trasparente ai programmi utenti; spesso essi non saranno nemmeno a conoscenza della natura paginata della memoria. Tuttavia, talvolta questa conoscenza può portare a scrivere programmi più efficienti.
