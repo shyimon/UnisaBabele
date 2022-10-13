@@ -10,6 +10,10 @@ Inizialmente ho creato questi appunti solo per me, poi li ho condivisi, poi ho a
 Vedendo un po' di gente usarli e farli girare, ho pensato di poter creare qualcosa di più interessante di un pacco di appunti che fra qualche anno sarà datato e un guadagno di qualche spicciolo per me: vorrei creare un punto di raccolta per tutti gli studenti Unisa e non, per trovare, inserire e aggiornare appunti. In questo modo spero che lo sforzo di gruppo fornisca una fonte gratuita, libera, collettiva e soprattutto aggiornata di conoscenza, anche quando i corsi inevitabilmente verranno aggiornati e quando io, fra circa 12 ere geologiche, mi laureerò.
 </p>
 
+## 🔧 Come funziona? Dove sono i PDF?
+I file sono in formato .tex, e vanno compilati (se ci sono errori provate a cambiare compilatore, io li ho originariamente scritti pet pdfLaTeX). Ho cercato, in maniera fallimentare, di compilare i PDF in loco su github per limitare la frammentazione. Sono arrivato alla conclusione che è meglio mantenere la "purezza" dei file sorgente. Consiglio di effettuare eventuali aggiunte e modifiche in maniera consistente con il formato.
+Qualunque cosa venga da Office non verrà rimossa ma farà piangere Richard Stallman.
+
 ## 💻 Ok, ma in pratica?
 <p>
 In pratica le uniche cose che sconsiglio di caricare sono risorse protette da copyright. Questo include il 99% dei libri di testo. Le slide dei professori sono un territorio grigio, consiglio di chiedere ai diretti interessati. Qualsiasi rielaborazione di questi ultimi è incentivata.
