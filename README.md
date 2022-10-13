@@ -11,7 +11,7 @@ Vedendo un po' di gente usarli e farli girare, ho pensato di poter creare qualco
 </p>
 
 ## 🔧 Come funziona? Dove sono i PDF?
-I file sono in formato .tex, e vanno compilati (se ci sono errori provate a cambiare compilatore, io li ho originariamente scritti pet pdfLaTeX). Ho cercato, in maniera fallimentare, di compilare i PDF in loco su github per limitare la frammentazione. Sono arrivato alla conclusione che è meglio mantenere la "purezza" dei file sorgente. Consiglio di effettuare eventuali aggiunte e modifiche in maniera consistente con il formato.
+I file sono in formato .tex, e vanno compilati (se ci sono errori provate a cambiare compilatore, io li ho originariamente scritti per pdfLaTeX). Ho cercato, in maniera fallimentare, di compilare i PDF in loco su github per limitare la frammentazione. Sono arrivato alla conclusione che è meglio mantenere la "purezza" dei file sorgente. Consiglio di effettuare eventuali aggiunte e modifiche in maniera consistente con il formato.
 Qualunque cosa venga da Office non verrà rimossa ma farà piangere Richard Stallman.
 
 ## 💻 Ok, ma in pratica?
