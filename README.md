@@ -7,7 +7,7 @@ Sono dell'idea che qualsiasi tipo di conoscenza non debba essere privata, ma vad
 
 Inizialmente ho creato questi appunti solo per me, poi li ho condivisi, poi ho aggiunto un link di donazioni.
         
-Vedendo un po' di gente usarli e farli girare, ho pensato di poter creare qualcosa di più interessante di un pacco di appunti che fra qualche anno sarà datato e un guadagno di qualche spicciolo per me: vorrei creare un punto di raccolta per tutti gli studenti Unisa e non, per trovare, inserire e aggiornare appunti. In questo modo spero che lo sforzo di gruppo fornisca una fonte gratuita, libera, collettiva e soprattutto aggiornata di conoscenza, anche quando i corsi inevitabilmente verranno aggiornati e quando io, fra circa 12 ere geologiche, mi laureerò.
+Vedendo un po' di gente usarli e farli girare, ho pensato di poter creare qualcosa di più interessante di un guadagno di qualche spicciolo per me e un pacco di appunti che fra qualche anno sarà datato: vorrei creare un punto di raccolta per tutti gli studenti Unisa e non, per trovare, inserire e aggiornare appunti. In questo modo spero che lo sforzo di gruppo fornisca una fonte gratuita, libera, collettiva e soprattutto aggiornata di conoscenza, anche quando i corsi inevitabilmente verranno aggiornati e quando io, fra circa 12 ere geologiche, mi laureerò.
 </p>
 
 ## 🔧 Come funziona? Dove sono i PDF?
