@@ -7,7 +7,7 @@ Sono dell'idea che qualsiasi tipo di conoscenza non debba essere privata, ma vad
 
 Inizialmente ho creato questi appunti solo per me, poi li ho condivisi, poi ho aggiunto un link di donazioni.
         
-Vedendo un po' di gente usarli e farli girare, ho pensato di poter creare qualcosa di più interessante di un guadagno di qualche spicciolo per me e un pacco di appunti che fra qualche anno sarà datato: vorrei creare un punto di raccolta per tutti gli studenti Unisa e non, per trovare, inserire e aggiornare appunti. In questo modo spero che lo sforzo di gruppo fornisca una fonte gratuita, libera, collettiva e soprattutto aggiornata di conoscenza, anche quando i corsi inevitabilmente verranno aggiornati e quando io, fra circa 12 ere geologiche, mi laureerò.
+Vedendo un po' di gente usarli e farli girare, ho pensato di poter creare qualcosa di più interessante di un guadagno di qualche spicciolo per me e un pacco di appunti che fra qualche anno sarà datato: vorrei creare un punto di raccolta per tuttə lə studentə Unisa e non, per trovare, inserire e aggiornare appunti. In questo modo spero che lo sforzo di gruppo fornisca una fonte gratuita, libera, collettiva e soprattutto aggiornata di conoscenza, anche quando i corsi inevitabilmente verranno aggiornati e quando io, fra circa 12 ere geologiche, mi laureerò.
 </p>
 
 ## 🔧 Come funziona? Dove sono i PDF?
@@ -16,9 +16,9 @@ Qualunque cosa venga da Office non verrà rimossa ma farà piangere Richard Stal
 
 ## 💻 Ok, ma in pratica?
 <p>
-In pratica le uniche cose che sconsiglio di caricare sono risorse protette da copyright. Questo include il 99% dei libri di testo. Le slide dei professori sono un territorio grigio, consiglio di chiedere ai diretti interessati. Qualsiasi rielaborazione di questi ultimi è incentivata.
+In pratica le uniche cose che sconsiglio di caricare sono risorse protette da copyright. Questo include il 99% dei libri di testo. Le slide dellə professorə sono un territorio grigio, consiglio di chiedere allə direttə interessatə. Qualsiasi rielaborazione di questi ultimi è incentivata.
 
-Per quanto rigaurda la repository stessa, oltre alla partecipazione ai singoli documenti, mi farebbe piacere aggiungere collaboratori per dividerci la gestione della stessa, e che possano magari ereditarla del tutto un giorno perché non ho intenzione di accettare pull request per tutta la vita.
+Per quanto rigaurda la repository stessa, oltre alla partecipazione ai singoli documenti, mi farebbe piacere aggiungere collaboratorə per dividerci la gestione della stessa, e che possano magari ereditarla del tutto un giorno perché non ho intenzione di accettare pull request per tutta la vita.
 </p>
 
 ## 💭 Commenti personali
